@@ -1,6 +1,7 @@
 import { ArrowRight, TrendingUp, Users, Calendar } from 'lucide-react';
 import { Link } from 'react-router';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { homeFeaturedZones, images } from '../../constants/images';
 
 export function Home() {
   return (
@@ -10,9 +11,9 @@ export function Home() {
         <div className="absolute inset-0 bg-black/40 z-10" />
         <div className="absolute inset-0">
           <ImageWithFallback
-            src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1920&h=1080&fit=crop"
+            src={images.home.hero}
             alt="Aerial view of industrial zone"
-            className="w-full h-full object-cover"
+            className="h-full w-full object-cover"
           />
         </div>
 
@@ -74,32 +75,7 @@ export function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                title: 'SRC Calumpang',
-                description: 'Prime location in General Santos City with excellent logistics access',
-                image: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&h=600&fit=crop',
-                area: '120 hectares'
-              },
-              {
-                title: 'Cannery Site',
-                description: 'Established zone in Polomolok with complete infrastructure',
-                image: 'https://images.unsplash.com/photo-1590674899484-d5640e854abe?w=800&h=600&fit=crop',
-                area: '180 hectares'
-              },
-              {
-                title: 'Allah Valley',
-                description: 'Emerging economic zone with agricultural focus',
-                image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&h=600&fit=crop',
-                area: '150 hectares'
-              },
-              {
-                title: 'Upper Klinan',
-                description: 'Strategic industrial park with modern facilities',
-                image: 'https://images.unsplash.com/photo-1587293852726-70cdb56c2866?w=800&h=600&fit=crop',
-                area: '95 hectares'
-              }
-            ].map((zone, index) => (
+            {homeFeaturedZones.map((zone, index) => (
               <div key={index} className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
                 <div className="h-48 overflow-hidden">
                   <ImageWithFallback

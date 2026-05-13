@@ -1,27 +1,68 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react';
+import { ASSET_PLACEHOLDER } from '../../../constants/images';
 
-const ERROR_IMG_SRC =
-  'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODgiIGhlaWdodD0iODgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBvcGFjaXR5PSIuMyIgZmlsbD0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIzLjciPjxyZWN0IHg9IjE2IiB5PSIxNiIgd2lkdGg9IjU2IiBoZWlnaHQ9IjU2IiByeD0iNiIvPjxwYXRoIGQ9Im0xNiA1OCAxNi0xOCAzMiAzMiIvPjxjaXJjbGUgY3g9IjUzIiBjeT0iMzUiIHI9IjciLz48L3N2Zz4KCg=='
+type ImageWithFallbackProps = React.ImgHTMLAttributes<HTMLImageElement>;
 
-export function ImageWithFallback(props: React.ImgHTMLAttributes<HTMLImageElement>) {
-  const [didError, setDidError] = useState(false)
+export function ImageWithFallback(props: ImageWithFallbackProps) {
+  const { src, alt, style, className, onLoad, onError, ...rest } = props;
+  const [didError, setDidError] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [placeholderFailed, setPlaceholderFailed] = useState(false);
 
-  const handleError = () => {
-    setDidError(true)
+  useEffect(() => {
+    setDidError(false);
+    setIsLoaded(false);
+    setPlaceholderFailed(false);
+  }, [src]);
+
+  const handleError: React.ReactEventHandler<HTMLImageElement> = (e) => {
+    setDidError(true);
+    onError?.(e);
+  };
+
+  const handleLoad: React.ReactEventHandler<HTMLImageElement> = (e) => {
+    setIsLoaded(true);
+    onLoad?.(e);
+  };
+
+  if (didError) {
+    return (
+      <div
+        className={`flex items-center justify-center overflow-hidden bg-gradient-to-br from-gray-100 via-gray-50 to-gray-200 ${className ?? ''}`}
+        style={style}
+        role="img"
+        aria-label={alt}
+      >
+        <span className="sr-only">{alt}</span>
+        {!placeholderFailed && (
+          <img
+            src={ASSET_PLACEHOLDER}
+            alt=""
+            className="max-h-[45%] max-w-[45%] object-contain opacity-40"
+            onError={() => setPlaceholderFailed(true)}
+          />
+        )}
+      </div>
+    );
   }
 
-  const { src, alt, style, className, ...rest } = props
-
-  return didError ? (
-    <div
-      className={`inline-block bg-gray-100 text-center align-middle ${className ?? ''}`}
-      style={style}
-    >
-      <div className="flex items-center justify-center w-full h-full">
-        <img src={ERROR_IMG_SRC} alt="Error loading image" {...rest} data-original-url={src} />
-      </div>
-    </div>
-  ) : (
-    <img src={src} alt={alt} className={className} style={style} {...rest} onError={handleError} />
-  )
+  return (
+    <span className="relative block h-full w-full min-h-0 min-w-0 max-w-full">
+      {!isLoaded && (
+        <span
+          className="pointer-events-none absolute inset-0 z-10 block animate-pulse bg-gradient-to-br from-gray-100 to-gray-200"
+          aria-hidden
+        />
+      )}
+      <img
+        src={src}
+        alt={alt}
+        className={className}
+        style={style}
+        {...rest}
+        onLoad={handleLoad}
+        onError={handleError}
+      />
+    </span>
+  );
 }

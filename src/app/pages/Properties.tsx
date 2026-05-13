@@ -1,5 +1,6 @@
-import { MapPin, Zap, Droplet, Wifi, Shield, Truck, Factory, ChevronRight } from 'lucide-react';
+import { MapPin, Zap, Droplet, Wifi, Shield, Truck, Factory } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { images } from '../../constants/images';
 
 export function Properties() {
   return (
@@ -23,9 +24,9 @@ export function Properties() {
           <div className="bg-gray-100 rounded-xl p-8 shadow-lg">
             <div className="relative h-[500px] bg-gradient-to-br from-green-50 to-blue-50 rounded-lg overflow-hidden">
               <ImageWithFallback
-                src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=1200&h=800&fit=crop"
+                src={images.maps.soccskargenOverview}
                 alt="Map of SOCCSKSARGEN region"
-                className="w-full h-full object-cover opacity-60"
+                className="h-full w-full object-cover opacity-60"
               />
 
               {/* Map Pins */}
@@ -109,9 +110,9 @@ export function Properties() {
 
             <div className="rounded-lg overflow-hidden shadow-xl">
               <ImageWithFallback
-                src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&h=600&fit=crop"
+                src={images.properties.calumpang.thumbnail}
                 alt="SRC Calumpang aerial view"
-                className="w-full h-full object-cover"
+                className="h-full w-full object-cover"
               />
             </div>
           </div>
@@ -124,9 +125,9 @@ export function Properties() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
             <div className="rounded-lg overflow-hidden shadow-xl order-2 lg:order-1">
               <ImageWithFallback
-                src="https://images.unsplash.com/photo-1590674899484-d5640e854abe?w=800&h=600&fit=crop"
+                src={images.properties.cannery.thumbnail}
                 alt="Cannery Site"
-                className="w-full h-full object-cover"
+                className="h-full w-full object-cover"
               />
             </div>
 
@@ -175,9 +176,9 @@ export function Properties() {
             <div className="bg-white rounded-xl shadow-lg overflow-hidden">
               <div className="h-64">
                 <ImageWithFallback
-                  src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&h=600&fit=crop"
+                  src={images.properties.allahValley.thumbnail}
                   alt="Allah Valley"
-                  className="w-full h-full object-cover"
+                  className="h-full w-full object-cover"
                 />
               </div>
               <div className="p-8">
@@ -199,9 +200,9 @@ export function Properties() {
             <div className="bg-white rounded-xl shadow-lg overflow-hidden">
               <div className="h-64">
                 <ImageWithFallback
-                  src="https://images.unsplash.com/photo-1587293852726-70cdb56c2866?w=800&h=600&fit=crop"
+                  src={images.properties.upperKlinan.thumbnail}
                   alt="Upper Klinan"
-                  className="w-full h-full object-cover"
+                  className="h-full w-full object-cover"
                 />
               </div>
               <div className="p-8">
@@ -259,19 +260,12 @@ export function Properties() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              'https://images.unsplash.com/photo-1565008576549-57569a49371d?w=800&h=600&fit=crop',
-              'https://images.unsplash.com/photo-1582407947304-fd86f028f716?w=800&h=600&fit=crop',
-              'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&h=600&fit=crop',
-              'https://images.unsplash.com/photo-1563641823-5936d5e0c0a1?w=800&h=600&fit=crop',
-              'https://images.unsplash.com/photo-1615799480443-c1c95e69cff9?w=800&h=600&fit=crop',
-              'https://images.unsplash.com/photo-1565514020179-026b92b84bb6?w=800&h=600&fit=crop'
-            ].map((image, index) => (
+            {images.gallery.propertyShowcase.map((image, index) => (
               <div key={index} className="rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
                 <ImageWithFallback
                   src={image}
                   alt={`Property image ${index + 1}`}
-                  className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
+                  className="h-64 w-full object-cover transition-transform duration-300 hover:scale-105"
                 />
               </div>
             ))}

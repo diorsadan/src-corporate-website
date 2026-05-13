@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { MapPin, Phone, Mail, Clock, Send } from 'lucide-react';
+import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { images } from '../../constants/images';
 
 export function Contact() {
   const [formData, setFormData] = useState({
@@ -243,11 +245,18 @@ export function Contact() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Polomolok Headquarters */}
             <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-              <div className="h-64 bg-gradient-to-br from-green-100 to-blue-100 flex items-center justify-center">
-                <div className="text-center p-8">
-                  <MapPin className="w-16 h-16 text-[#059669] mx-auto mb-4" />
-                  <p className="text-gray-600">Google Maps Embed</p>
-                  <p className="text-sm text-gray-500">Interactive map would appear here</p>
+              <div className="relative h-64 overflow-hidden bg-gradient-to-br from-green-100 to-blue-100">
+                <ImageWithFallback
+                  src={images.contact.mapPolomolok}
+                  alt="Map showing Polomolok headquarters location"
+                  className="absolute inset-0 h-full w-full object-cover opacity-70"
+                />
+                <div className="relative z-10 flex h-full items-center justify-center p-8 text-center">
+                  <div>
+                    <MapPin className="mx-auto mb-4 h-16 w-16 text-[#059669]" />
+                    <p className="text-gray-600">Google Maps Embed</p>
+                    <p className="text-sm text-gray-500">Interactive map would appear here</p>
+                  </div>
                 </div>
               </div>
               <div className="p-8">
@@ -275,11 +284,18 @@ export function Contact() {
 
             {/* General Santos Office */}
             <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-              <div className="h-64 bg-gradient-to-br from-green-100 to-blue-100 flex items-center justify-center">
-                <div className="text-center p-8">
-                  <MapPin className="w-16 h-16 text-[#059669] mx-auto mb-4" />
-                  <p className="text-gray-600">Google Maps Embed</p>
-                  <p className="text-sm text-gray-500">Interactive map would appear here</p>
+              <div className="relative h-64 overflow-hidden bg-gradient-to-br from-green-100 to-blue-100">
+                <ImageWithFallback
+                  src={images.contact.mapGeneralSantos}
+                  alt="Map showing General Santos office location"
+                  className="absolute inset-0 h-full w-full object-cover opacity-70"
+                />
+                <div className="relative z-10 flex h-full items-center justify-center p-8 text-center">
+                  <div>
+                    <MapPin className="mx-auto mb-4 h-16 w-16 text-[#059669]" />
+                    <p className="text-gray-600">Google Maps Embed</p>
+                    <p className="text-sm text-gray-500">Interactive map would appear here</p>
+                  </div>
                 </div>
               </div>
               <div className="p-8">

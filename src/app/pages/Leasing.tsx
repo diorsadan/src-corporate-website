@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Building2, Store, Warehouse, Download, FileText, ClipboardList, MapPin, Key, ArrowRight } from 'lucide-react';
+import { Building2, Download, FileText, ClipboardList, MapPin, Key, ArrowRight } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { images } from '../../constants/images';
 
 export function Leasing() {
   const [filter, setFilter] = useState('All');
@@ -13,7 +14,7 @@ export function Leasing() {
       area: '250 sqm',
       location: 'SRC Calumpang, General Santos City',
       condition: 'Bare Shell',
-      image: 'https://images.unsplash.com/photo-1528698827591-e19ccd7bc23d?w=800&h=600&fit=crop',
+      image: images.leasing.listingCalumpangRetail,
       price: 'Contact for Pricing'
     },
     {
@@ -23,7 +24,7 @@ export function Leasing() {
       area: '1,200 sqm',
       location: 'Cannery Site, Polomolok',
       condition: 'Semi-Fitted',
-      image: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=800&h=600&fit=crop',
+      image: images.leasing.listingCanneryCorporate,
       price: 'Contact for Pricing'
     },
     {
@@ -33,7 +34,7 @@ export function Leasing() {
       area: '3,500 sqm',
       location: 'SRC Calumpang, General Santos City',
       condition: 'Bare Shell',
-      image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&h=600&fit=crop',
+      image: images.leasing.listingCalumpangWarehouse,
       price: 'Contact for Pricing'
     },
     {
@@ -43,7 +44,7 @@ export function Leasing() {
       area: '180 sqm',
       location: 'SRC Calumpang, General Santos City',
       condition: 'Semi-Fitted',
-      image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=600&fit=crop',
+      image: images.leasing.listingCalumpangDining,
       price: 'Contact for Pricing'
     },
     {
@@ -53,7 +54,7 @@ export function Leasing() {
       area: '2,800 sqm',
       location: 'Cannery Site, Polomolok',
       condition: 'Fully Fitted',
-      image: 'https://images.unsplash.com/photo-1553413077-190dd305871c?w=800&h=600&fit=crop',
+      image: images.leasing.listingCanneryColdStorage,
       price: 'Contact for Pricing'
     },
     {
@@ -63,7 +64,7 @@ export function Leasing() {
       area: '850 sqm',
       location: 'Upper Klinan Industrial Park',
       condition: 'Fully Fitted',
-      image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=600&fit=crop',
+      image: images.leasing.listingUpperKlinanOffice,
       price: 'Contact for Pricing'
     }
   ];
@@ -112,7 +113,7 @@ export function Leasing() {
                   <ImageWithFallback
                     src={listing.image}
                     alt={listing.title}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
                   />
                   <div className="absolute top-4 right-4 bg-[#84cc16] text-white px-3 py-1 rounded-full text-sm" style={{ fontWeight: 600 }}>
                     {listing.type}

@@ -1,5 +1,6 @@
 import { CheckCircle, TrendingUp, Ship, Award, Briefcase, DollarSign, FileText, Building } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { images } from '../../constants/images';
 
 export function Resources() {
   return (
@@ -75,9 +76,9 @@ export function Resources() {
 
             <div className="rounded-lg overflow-hidden shadow-xl">
               <ImageWithFallback
-                src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&h=800&fit=crop"
+                src={images.resources.investorFeature}
                 alt="Business growth"
-                className="w-full h-full object-cover"
+                className="h-full w-full object-cover"
               />
             </div>
           </div>

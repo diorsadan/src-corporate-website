@@ -1,5 +1,6 @@
-import { Target, Eye, Award, CheckCircle } from 'lucide-react';
+import { Target, Eye } from 'lucide-react';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { images } from '../../constants/images';
 
 export function About() {
   return (
@@ -27,9 +28,9 @@ export function About() {
             </div>
             <div className="rounded-lg overflow-hidden shadow-xl">
               <ImageWithFallback
-                src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop"
+                src={images.about.company}
                 alt="Corporate office building"
-                className="w-full h-full object-cover"
+                className="h-full w-full object-cover"
               />
             </div>
           </div>
@@ -77,19 +78,19 @@ export function About() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              { name: 'Antonio D. Cruz', position: 'President & CEO', image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=400&fit=crop' },
-              { name: 'Maria L. Santos', position: 'VP - Operations & Development', image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop' },
-              { name: 'Roberto P. Mendoza', position: 'VP - Commercial Leasing', image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop' },
-              { name: 'Elena R. Garcia', position: 'Corporate Secretary', image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&h=400&fit=crop' },
-              { name: 'Carlos M. Reyes', position: 'Chief Financial Officer', image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&h=400&fit=crop' },
-              { name: 'Patricia S. Aquino', position: 'Head - Business Development', image: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&h=400&fit=crop' }
+              { name: 'Antonio D. Cruz', position: 'President & CEO', image: images.team.president },
+              { name: 'Maria L. Santos', position: 'VP - Operations & Development', image: images.team.board1 },
+              { name: 'Roberto P. Mendoza', position: 'VP - Commercial Leasing', image: images.team.board2 },
+              { name: 'Elena R. Garcia', position: 'Corporate Secretary', image: images.team.board3 },
+              { name: 'Carlos M. Reyes', position: 'Chief Financial Officer', image: images.team.board4 },
+              { name: 'Patricia S. Aquino', position: 'Head - Business Development', image: images.team.board5 },
             ].map((member, index) => (
               <div key={index} className="text-center group">
                 <div className="mb-4 overflow-hidden rounded-lg shadow-lg">
                   <ImageWithFallback
                     src={member.image}
                     alt={member.name}
-                    className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="h-80 w-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                 </div>
                 <h3 className="text-xl mb-1 text-gray-900" style={{ fontWeight: 600 }}>{member.name}</h3>
