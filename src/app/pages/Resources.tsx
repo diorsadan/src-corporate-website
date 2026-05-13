@@ -1,6 +1,6 @@
 import { CheckCircle, TrendingUp, Ship, Award, Briefcase, DollarSign, FileText, Building } from 'lucide-react';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import { images } from '../../constants/images';
+import { ImageWithFallback } from '@/components/common/ImageWithFallback';
+import { images } from '@/constants/images';
 
 export function Resources() {
   return (

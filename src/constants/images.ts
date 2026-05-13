@@ -137,31 +137,3 @@ export const images = {
     corporateReel: '/assets/videos/video-corporate-reel.mp4',
   },
 } as const;
-
-/** Home “Featured Economic Zones” cards — image paths only; copy stays in the page */
-export const homeFeaturedZones = [
-  {
-    title: 'SRC Calumpang',
-    description: 'Prime location in General Santos City with excellent logistics access',
-    area: '120 hectares',
-    image: images.properties.calumpang.thumbnail,
-  },
-  {
-    title: 'Cannery Site',
-    description: 'Established zone in Polomolok with complete infrastructure',
-    area: '180 hectares',
-    image: images.properties.cannery.thumbnail,
-  },
-  {
-    title: 'Allah Valley',
-    description: 'Emerging economic zone with agricultural focus',
-    area: '150 hectares',
-    image: images.properties.allahValley.thumbnail,
-  },
-  {
-    title: 'Upper Klinan',
-    description: 'Strategic industrial park with modern facilities',
-    area: '95 hectares',
-    image: images.properties.upperKlinan.thumbnail,
-  },
-] as const;

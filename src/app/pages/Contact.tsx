@@ -1,7 +1,60 @@
 import { useState } from 'react';
 import { MapPin, Phone, Mail, Clock, Send } from 'lucide-react';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import { images } from '../../constants/images';
+import { ImageWithFallback } from '@/components/common/ImageWithFallback';
+import {
+  contactLocationsSection,
+  contactOffices,
+  contactPageHero,
+  contactSidebarCards,
+  contactFormSection,
+  inquiryTypeOptions,
+  type ContactSidebarCard,
+} from '@/data/locations';
+
+function SidebarCard({ card }: { card: ContactSidebarCard }) {
+  const isGradient = card.variant === 'gradient';
+
+  return (
+    <div
+      className={
+        isGradient
+          ? 'bg-gradient-to-br from-[#059669] to-[#047857] text-white rounded-xl p-8 shadow-lg'
+          : 'bg-white border-2 border-[#059669] rounded-xl p-8 shadow-lg'
+      }
+    >
+      <h3 className={`text-2xl mb-6 ${isGradient ? '' : 'text-gray-900'}`} style={{ fontWeight: 700 }}>
+        {card.title}
+      </h3>
+      <div className={`space-y-4 ${isGradient ? '' : 'text-gray-700'}`}>
+        {card.blocks.map((block) => (
+          <div key={block.headline} className="flex items-start gap-3">
+            {block.type === 'phone' && (
+              <Phone className={`w-5 h-5 mt-1 flex-shrink-0 ${isGradient ? '' : 'text-[#059669]'}`} />
+            )}
+            {block.type === 'email' && (
+              <Mail className={`w-5 h-5 mt-1 flex-shrink-0 ${isGradient ? '' : 'text-[#059669]'}`} />
+            )}
+            {block.type === 'hours' && (
+              <Clock className={`w-5 h-5 mt-1 flex-shrink-0 ${isGradient ? '' : 'text-[#059669]'}`} />
+            )}
+            <div>
+              <p style={{ fontWeight: 600 }}>{block.headline}</p>
+              {block.type === 'hours' ? (
+                block.lines.map((line) => (
+                  <p key={line} className={isGradient ? 'text-gray-100' : ''}>
+                    {line}
+                  </p>
+                ))
+              ) : (
+                <p className={isGradient ? 'text-gray-100' : ''}>{block.value}</p>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export function Contact() {
   const [formData, setFormData] = useState({
@@ -10,7 +63,7 @@ export function Contact() {
     email: '',
     contactNumber: '',
     inquiryType: '',
-    message: ''
+    message: '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -22,35 +75,36 @@ export function Contact() {
       email: '',
       contactNumber: '',
       inquiryType: '',
-      message: ''
+      message: '',
     });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   return (
     <div>
-      {/* Page Header */}
       <section className="py-20 bg-gradient-to-br from-[#059669] to-[#047857] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-5xl mb-4" style={{ fontWeight: 700 }}>Contact Us</h1>
-          <p className="text-xl text-gray-100">We're here to help you find the perfect space for your business</p>
+          <h1 className="text-5xl mb-4" style={{ fontWeight: 700 }}>
+            {contactPageHero.title}
+          </h1>
+          <p className="text-xl text-gray-100">{contactPageHero.subtitle}</p>
         </div>
       </section>
 
-      {/* Contact Form & Info */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-            {/* Contact Form */}
             <div className="lg:col-span-2">
               <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-                <h2 className="text-3xl mb-6 text-gray-900" style={{ fontWeight: 700 }}>Send Us an Inquiry</h2>
+                <h2 className="text-3xl mb-6 text-gray-900" style={{ fontWeight: 700 }}>
+                  {contactFormSection.title}
+                </h2>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -133,13 +187,11 @@ export function Contact() {
                       required
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#059669] focus:border-transparent bg-white"
                     >
-                      <option value="">Select inquiry type...</option>
-                      <option value="leasing">Commercial Leasing Inquiry</option>
-                      <option value="investment">Investment Opportunity</option>
-                      <option value="peza">PEZA Registration Assistance</option>
-                      <option value="site-visit">Site Visit Request</option>
-                      <option value="partnership">Partnership Proposal</option>
-                      <option value="general">General Information</option>
+                      {inquiryTypeOptions.map((opt) => (
+                        <option key={opt.label} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -171,155 +223,70 @@ export function Contact() {
               </div>
             </div>
 
-            {/* Contact Information */}
             <div className="space-y-6">
-              {/* Leasing Department */}
-              <div className="bg-gradient-to-br from-[#059669] to-[#047857] text-white rounded-xl p-8 shadow-lg">
-                <h3 className="text-2xl mb-6" style={{ fontWeight: 700 }}>Leasing Department</h3>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <Phone className="w-5 h-5 mt-1 flex-shrink-0" />
-                    <div>
-                      <p style={{ fontWeight: 600 }}>Direct Line</p>
-                      <p className="text-gray-100">+63 83 228 8766</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Mail className="w-5 h-5 mt-1 flex-shrink-0" />
-                    <div>
-                      <p style={{ fontWeight: 600 }}>Email</p>
-                      <p className="text-gray-100">leasing@saranganiresources.com</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Clock className="w-5 h-5 mt-1 flex-shrink-0" />
-                    <div>
-                      <p style={{ fontWeight: 600 }}>Business Hours</p>
-                      <p className="text-gray-100">Mon-Fri: 8:00 AM - 5:00 PM</p>
-                      <p className="text-gray-100">Sat: 9:00 AM - 12:00 PM</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* PEZA Customs */}
-              <div className="bg-white border-2 border-[#059669] rounded-xl p-8 shadow-lg">
-                <h3 className="text-2xl mb-6 text-gray-900" style={{ fontWeight: 700 }}>PEZA Customs Office</h3>
-                <div className="space-y-4 text-gray-700">
-                  <div className="flex items-start gap-3">
-                    <Phone className="w-5 h-5 mt-1 flex-shrink-0 text-[#059669]" />
-                    <div>
-                      <p style={{ fontWeight: 600 }}>Direct Line</p>
-                      <p>+63 83 552 7890</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Mail className="w-5 h-5 mt-1 flex-shrink-0 text-[#059669]" />
-                    <div>
-                      <p style={{ fontWeight: 600 }}>Email</p>
-                      <p>customs@src-peza.gov.ph</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Clock className="w-5 h-5 mt-1 flex-shrink-0 text-[#059669]" />
-                    <div>
-                      <p style={{ fontWeight: 600 }}>Office Hours</p>
-                      <p>Mon-Fri: 8:00 AM - 5:00 PM</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {contactSidebarCards.map((card) => (
+                <SidebarCard key={card.title} card={card} />
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Office Locations */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl mb-4 text-gray-900" style={{ fontWeight: 700 }}>Our Locations</h2>
-            <p className="text-xl text-gray-600">Visit our offices across SOCCSKSARGEN</p>
+            <h2 className="text-4xl mb-4 text-gray-900" style={{ fontWeight: 700 }}>
+              {contactLocationsSection.title}
+            </h2>
+            <p className="text-xl text-gray-600">{contactLocationsSection.subtitle}</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Polomolok Headquarters */}
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-              <div className="relative h-64 overflow-hidden bg-gradient-to-br from-green-100 to-blue-100">
-                <ImageWithFallback
-                  src={images.contact.mapPolomolok}
-                  alt="Map showing Polomolok headquarters location"
-                  className="absolute inset-0 h-full w-full object-cover opacity-70"
-                />
-                <div className="relative z-10 flex h-full items-center justify-center p-8 text-center">
-                  <div>
-                    <MapPin className="mx-auto mb-4 h-16 w-16 text-[#059669]" />
-                    <p className="text-gray-600">Google Maps Embed</p>
-                    <p className="text-sm text-gray-500">Interactive map would appear here</p>
+            {contactOffices.map((office) => (
+              <div key={office.id} className="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div className="relative h-64 overflow-hidden bg-gradient-to-br from-green-100 to-blue-100">
+                  <ImageWithFallback
+                    src={office.mapImage}
+                    alt={office.mapAlt}
+                    className="absolute inset-0 h-full w-full object-cover opacity-70"
+                  />
+                  <div className="relative z-10 flex h-full items-center justify-center p-8 text-center">
+                    <div>
+                      <MapPin className="mx-auto mb-4 h-16 w-16 text-[#059669]" />
+                      <p className="text-gray-600">{contactLocationsSection.mapOverlayTitle}</p>
+                      <p className="text-sm text-gray-500">{contactLocationsSection.mapOverlayHint}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-8">
+                  <h3 className="text-2xl mb-4 text-gray-900" style={{ fontWeight: 700 }}>
+                    {office.title}
+                  </h3>
+                  <div className="space-y-3 text-gray-700">
+                    <p>
+                      <span style={{ fontWeight: 600 }}>{office.orgLine}</span>
+                      <br />
+                      {office.addressLines.map((line) => (
+                        <span key={line}>
+                          {line}
+                          <br />
+                        </span>
+                      ))}
+                    </p>
+                    <div className="pt-4 border-t border-gray-200">
+                      <p className="flex items-center gap-2 mb-2">
+                        <Phone className="w-4 h-4 text-[#059669]" />
+                        <span>{office.phone}</span>
+                      </p>
+                      <p className="flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-[#059669]" />
+                        <span>{office.email}</span>
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div className="p-8">
-                <h3 className="text-2xl mb-4 text-gray-900" style={{ fontWeight: 700 }}>Polomolok Headquarters</h3>
-                <div className="space-y-3 text-gray-700">
-                  <p>
-                    <span style={{ fontWeight: 600 }}>Sarangani Resources Corporation</span><br />
-                    National Highway, Cannery Site<br />
-                    Polomolok, South Cotabato 9504<br />
-                    Philippines
-                  </p>
-                  <div className="pt-4 border-t border-gray-200">
-                    <p className="flex items-center gap-2 mb-2">
-                      <Phone className="w-4 h-4 text-[#059669]" />
-                      <span>+63 83 228 8766</span>
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-[#059669]" />
-                      <span>info@saranganiresources.com</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* General Santos Office */}
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-              <div className="relative h-64 overflow-hidden bg-gradient-to-br from-green-100 to-blue-100">
-                <ImageWithFallback
-                  src={images.contact.mapGeneralSantos}
-                  alt="Map showing General Santos office location"
-                  className="absolute inset-0 h-full w-full object-cover opacity-70"
-                />
-                <div className="relative z-10 flex h-full items-center justify-center p-8 text-center">
-                  <div>
-                    <MapPin className="mx-auto mb-4 h-16 w-16 text-[#059669]" />
-                    <p className="text-gray-600">Google Maps Embed</p>
-                    <p className="text-sm text-gray-500">Interactive map would appear here</p>
-                  </div>
-                </div>
-              </div>
-              <div className="p-8">
-                <h3 className="text-2xl mb-4 text-gray-900" style={{ fontWeight: 700 }}>General Santos Office</h3>
-                <div className="space-y-3 text-gray-700">
-                  <p>
-                    <span style={{ fontWeight: 600 }}>SRC Calumpang Economic Zone</span><br />
-                    Calumpang, General Santos City<br />
-                    South Cotabato 9500<br />
-                    Philippines
-                  </p>
-                  <div className="pt-4 border-t border-gray-200">
-                    <p className="flex items-center gap-2 mb-2">
-                      <Phone className="w-4 h-4 text-[#059669]" />
-                      <span>+63 83 552 1234</span>
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-[#059669]" />
-                      <span>calumpang@saranganiresources.com</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ASSET_PLACEHOLDER } from '../../../constants/images';
+import { ASSET_PLACEHOLDER } from '@/constants/images';
 
 type ImageWithFallbackProps = React.ImgHTMLAttributes<HTMLImageElement>;
 

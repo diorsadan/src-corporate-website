@@ -1,17 +1,9 @@
 import { Link, useLocation } from 'react-router';
 import { Logo } from './Logo';
+import { primaryNav } from '@/data/navigation';
 
 export function Header() {
   const location = useLocation();
-
-  const navLinks = [
-    { path: '/', label: 'Home' },
-    { path: '/about', label: 'About Us' },
-    { path: '/properties', label: 'Our Properties' },
-    { path: '/leasing', label: 'Commercial Leasing' },
-    { path: '/resources', label: 'Investor Resources' },
-    { path: '/contact', label: 'Contact Us' },
-  ];
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
@@ -22,7 +14,7 @@ export function Header() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
+            {primaryNav.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
