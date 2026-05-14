@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { MapPin, Phone, Mail, Clock, Send } from 'lucide-react';
-import { ImageWithFallback } from '@/components/common/ImageWithFallback';
+import { useState } from "react";
+import { MapPin, Phone, Mail, Clock, Send, Check } from "lucide-react";
+import { ImageWithFallback } from "@/components/common/ImageWithFallback";
 import {
   contactLocationsSection,
   contactOffices,
@@ -9,44 +9,56 @@ import {
   contactFormSection,
   inquiryTypeOptions,
   type ContactSidebarCard,
-} from '@/data/locations';
+} from "@/data/locations";
+import { contactInfo, generateMailtoLink } from "@/data/contact";
 
 function SidebarCard({ card }: { card: ContactSidebarCard }) {
-  const isGradient = card.variant === 'gradient';
+  const isGradient = card.variant === "gradient";
 
   return (
     <div
       className={
         isGradient
-          ? 'bg-gradient-to-br from-[#059669] to-[#047857] text-white rounded-xl p-8 shadow-lg'
-          : 'bg-white border-2 border-[#059669] rounded-xl p-8 shadow-lg'
+          ? "bg-gradient-to-br from-[#059669] to-[#047857] text-white rounded-xl p-8 shadow-lg"
+          : "bg-white border-2 border-[#059669] rounded-xl p-8 shadow-lg"
       }
     >
-      <h3 className={`text-2xl mb-6 ${isGradient ? '' : 'text-gray-900'}`} style={{ fontWeight: 700 }}>
+      <h3
+        className={`text-2xl mb-6 ${isGradient ? "" : "text-gray-900"}`}
+        style={{ fontWeight: 700 }}
+      >
         {card.title}
       </h3>
-      <div className={`space-y-4 ${isGradient ? '' : 'text-gray-700'}`}>
+      <div className={`space-y-4 ${isGradient ? "" : "text-gray-700"}`}>
         {card.blocks.map((block) => (
           <div key={block.headline} className="flex items-start gap-3">
-            {block.type === 'phone' && (
-              <Phone className={`w-5 h-5 mt-1 flex-shrink-0 ${isGradient ? '' : 'text-[#059669]'}`} />
+            {block.type === "phone" && (
+              <Phone
+                className={`w-5 h-5 mt-1 flex-shrink-0 ${isGradient ? "" : "text-[#059669]"}`}
+              />
             )}
-            {block.type === 'email' && (
-              <Mail className={`w-5 h-5 mt-1 flex-shrink-0 ${isGradient ? '' : 'text-[#059669]'}`} />
+            {block.type === "email" && (
+              <Mail
+                className={`w-5 h-5 mt-1 flex-shrink-0 ${isGradient ? "" : "text-[#059669]"}`}
+              />
             )}
-            {block.type === 'hours' && (
-              <Clock className={`w-5 h-5 mt-1 flex-shrink-0 ${isGradient ? '' : 'text-[#059669]'}`} />
+            {block.type === "hours" && (
+              <Clock
+                className={`w-5 h-5 mt-1 flex-shrink-0 ${isGradient ? "" : "text-[#059669]"}`}
+              />
             )}
             <div>
               <p style={{ fontWeight: 600 }}>{block.headline}</p>
-              {block.type === 'hours' ? (
+              {block.type === "hours" ? (
                 block.lines.map((line) => (
-                  <p key={line} className={isGradient ? 'text-gray-100' : ''}>
+                  <p key={line} className={isGradient ? "text-gray-100" : ""}>
                     {line}
                   </p>
                 ))
               ) : (
-                <p className={isGradient ? 'text-gray-100' : ''}>{block.value}</p>
+                <p className={isGradient ? "text-gray-100" : ""}>
+                  {block.value}
+                </p>
               )}
             </div>
           </div>
@@ -58,28 +70,53 @@ function SidebarCard({ card }: { card: ContactSidebarCard }) {
 
 export function Contact() {
   const [formData, setFormData] = useState({
-    fullName: '',
-    companyName: '',
-    email: '',
-    contactNumber: '',
-    inquiryType: '',
-    message: '',
+    fullName: "",
+    companyName: "",
+    email: "",
+    contactNumber: "",
+    inquiryType: "",
+    message: "",
   });
+
+  const [showThankYou, setShowThankYou] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    alert('Thank you for your inquiry! Our team will contact you within 24 hours.');
+
+    // Find the label for the selected inquiry type
+    const selectedOption = inquiryTypeOptions.find(
+      (opt) => opt.value === formData.inquiryType,
+    );
+    const inquiryTypeLabel = selectedOption?.label || formData.inquiryType;
+
+    // Generate mailto link and open email client
+    const mailtoLink = generateMailtoLink(formData, inquiryTypeLabel);
+    window.location.href = mailtoLink;
+
+    // Show thank you message
+    setShowThankYou(true);
+
+    // Reset form
     setFormData({
-      fullName: '',
-      companyName: '',
-      email: '',
-      contactNumber: '',
-      inquiryType: '',
-      message: '',
+      fullName: "",
+      companyName: "",
+      email: "",
+      contactNumber: "",
+      inquiryType: "",
+      message: "",
     });
+
+    // Hide thank you message after 5 seconds
+    setTimeout(() => {
+      setShowThankYou(false);
+    }, 5000);
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -102,14 +139,35 @@ export function Contact() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             <div className="lg:col-span-2">
               <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-                <h2 className="text-3xl mb-6 text-gray-900" style={{ fontWeight: 700 }}>
+                <h2
+                  className="text-3xl mb-6 text-gray-900"
+                  style={{ fontWeight: 700 }}
+                >
                   {contactFormSection.title}
                 </h2>
+
+                {showThankYou && (
+                  <div className="mb-6 p-4 bg-[#059669] text-white rounded-lg flex items-center gap-3">
+                    <Check className="w-5 h-5 flex-shrink-0" />
+                    <div>
+                      <p style={{ fontWeight: 600 }}>
+                        Thank you for your inquiry!
+                      </p>
+                      <p className="text-sm text-green-100">
+                        Your email client will open with the inquiry details.
+                        Please send the email to complete your submission.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label htmlFor="fullName" className="block mb-2 text-gray-700">
+                      <label
+                        htmlFor="fullName"
+                        className="block mb-2 text-gray-700"
+                      >
                         Full Name <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -125,7 +183,10 @@ export function Contact() {
                     </div>
 
                     <div>
-                      <label htmlFor="companyName" className="block mb-2 text-gray-700">
+                      <label
+                        htmlFor="companyName"
+                        className="block mb-2 text-gray-700"
+                      >
                         Company Name <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -143,7 +204,10 @@ export function Contact() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label htmlFor="email" className="block mb-2 text-gray-700">
+                      <label
+                        htmlFor="email"
+                        className="block mb-2 text-gray-700"
+                      >
                         Email Address <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -159,7 +223,10 @@ export function Contact() {
                     </div>
 
                     <div>
-                      <label htmlFor="contactNumber" className="block mb-2 text-gray-700">
+                      <label
+                        htmlFor="contactNumber"
+                        className="block mb-2 text-gray-700"
+                      >
                         Contact Number <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -176,7 +243,10 @@ export function Contact() {
                   </div>
 
                   <div>
-                    <label htmlFor="inquiryType" className="block mb-2 text-gray-700">
+                    <label
+                      htmlFor="inquiryType"
+                      className="block mb-2 text-gray-700"
+                    >
                       Nature of Inquiry <span className="text-red-500">*</span>
                     </label>
                     <select
@@ -196,7 +266,10 @@ export function Contact() {
                   </div>
 
                   <div>
-                    <label htmlFor="message" className="block mb-2 text-gray-700">
+                    <label
+                      htmlFor="message"
+                      className="block mb-2 text-gray-700"
+                    >
                       Message <span className="text-red-500">*</span>
                     </label>
                     <textarea
@@ -235,15 +308,23 @@ export function Contact() {
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl mb-4 text-gray-900" style={{ fontWeight: 700 }}>
+            <h2
+              className="text-4xl mb-4 text-gray-900"
+              style={{ fontWeight: 700 }}
+            >
               {contactLocationsSection.title}
             </h2>
-            <p className="text-xl text-gray-600">{contactLocationsSection.subtitle}</p>
+            <p className="text-xl text-gray-600">
+              {contactLocationsSection.subtitle}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {contactOffices.map((office) => (
-              <div key={office.id} className="bg-white rounded-xl shadow-lg overflow-hidden">
+              <div
+                key={office.id}
+                className="bg-white rounded-xl shadow-lg overflow-hidden"
+              >
                 <div className="relative h-64 overflow-hidden bg-gradient-to-br from-green-100 to-blue-100">
                   <ImageWithFallback
                     src={office.mapImage}
@@ -253,34 +334,53 @@ export function Contact() {
                   <div className="relative z-10 flex h-full items-center justify-center p-8 text-center">
                     <div>
                       <MapPin className="mx-auto mb-4 h-16 w-16 text-[#059669]" />
-                      <p className="text-gray-600">{contactLocationsSection.mapOverlayTitle}</p>
-                      <p className="text-sm text-gray-500">{contactLocationsSection.mapOverlayHint}</p>
+                      <p className="text-gray-600">
+                        {contactLocationsSection.mapOverlayTitle}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {contactLocationsSection.mapOverlayHint}
+                      </p>
                     </div>
                   </div>
                 </div>
                 <div className="p-8">
-                  <h3 className="text-2xl mb-4 text-gray-900" style={{ fontWeight: 700 }}>
+                  <h3
+                    className="text-2xl mb-4 text-gray-900"
+                    style={{ fontWeight: 700 }}
+                  >
                     {office.title}
                   </h3>
                   <div className="space-y-3 text-gray-700">
                     <p>
                       <span style={{ fontWeight: 600 }}>{office.orgLine}</span>
                       <br />
-                      {office.addressLines.map((line) => (
-                        <span key={line}>
-                          {line}
-                          <br />
-                        </span>
-                      ))}
+                      {office.id === "polomolok" ? (
+                        <>{contactInfo.officeAddress}</>
+                      ) : (
+                        office.addressLines.map((line) => (
+                          <span key={line}>
+                            {line}
+                            <br />
+                          </span>
+                        ))
+                      )}
                     </p>
                     <div className="pt-4 border-t border-gray-200">
                       <p className="flex items-center gap-2 mb-2">
                         <Phone className="w-4 h-4 text-[#059669]" />
-                        <span>{office.phone}</span>
+                        <span>
+                          {office.id === "polomolok"
+                            ? contactInfo.officePhone
+                            : office.phone}
+                        </span>
                       </p>
                       <p className="flex items-center gap-2">
                         <Mail className="w-4 h-4 text-[#059669]" />
-                        <span>{office.email}</span>
+                        <span>
+                          {office.id === "polomolok"
+                            ? contactInfo.primaryEmail
+                            : office.email}
+                        </span>
                       </p>
                     </div>
                   </div>
