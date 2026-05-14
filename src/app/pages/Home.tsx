@@ -246,9 +246,7 @@ export function Home() {
         <div className="absolute top-0 right-0 w-72 h-72 sm:w-96 sm:h-96 bg-white/5 rounded-full -mr-36 sm:-mr-48 -mt-36 sm:-mt-48" />
         <div className="absolute bottom-0 left-0 w-56 h-56 sm:w-72 sm:h-72 bg-white/5 rounded-full -ml-28 sm:-ml-36 -mb-28 sm:-mb-36" />
 
-        <FadeIn
-          className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 py-12 lg:py-0"
-        >
+        <FadeIn className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 py-12 lg:py-0">
           <h2
             className="text-3xl sm:text-4xl lg:text-5xl mb-6 lg:mb-8 tracking-tight leading-tight"
             style={{ fontWeight: 800, letterSpacing: "-0.02em" }}
