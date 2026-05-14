@@ -44,7 +44,6 @@ export function Home() {
       y: 0,
       transition: {
         duration: 0.9,
-        ease: [0.22, 1, 0.36, 1], // custom easeOut
       },
     },
   };
@@ -67,7 +66,6 @@ export function Home() {
       scale: 1,
       transition: {
         duration: 0.8,
-        ease: [0.22, 1, 0.36, 1],
       },
     },
   };
@@ -113,7 +111,6 @@ export function Home() {
               transition={{
                 duration: 0.9,
                 delay: 0.2,
-                ease: [0.22, 1, 0.36, 1],
               }}
             >
               {homeHero.titleLine2}
@@ -129,7 +126,6 @@ export function Home() {
             transition={{
               duration: 0.9,
               delay: 0.4,
-              ease: [0.22, 1, 0.36, 1],
             }}
           >
             {homeHero.subtitle}
@@ -143,7 +139,6 @@ export function Home() {
             transition={{
               duration: 0.9,
               delay: 0.6,
-              ease: [0.22, 1, 0.36, 1],
             }}
           >
             <Link
@@ -407,7 +402,6 @@ export function Home() {
             transition={{
               duration: 0.9,
               delay: 0.2,
-              ease: [0.22, 1, 0.36, 1],
             }}
             viewport={{ once: true, amount: 0.3 }}
           >
