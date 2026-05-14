@@ -1,5 +1,6 @@
 import { MapPin, Zap, Droplet, Wifi, Shield, Truck, Factory } from 'lucide-react';
 import { ImageWithFallback } from '@/components/common/ImageWithFallback';
+import { FadeIn, StaggerContainer, StaggerItem } from '@/components/animations';
 import { images } from '@/constants/images';
 import {
   propertyCompactZones,
@@ -43,12 +44,12 @@ export function Properties() {
 
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
+          <FadeIn className="text-center mb-12">
             <h2 className="text-4xl mb-4 text-gray-900" style={{ fontWeight: 700 }}>
               {propertyMapSection.title}
             </h2>
             <p className="text-xl text-gray-600">{propertyMapSection.subtitle}</p>
-          </div>
+          </FadeIn>
 
           <div className="bg-gray-100 rounded-xl p-8 shadow-lg">
             <div className="relative h-[500px] bg-gradient-to-br from-green-50 to-blue-50 rounded-lg overflow-hidden">
@@ -152,45 +153,47 @@ export function Properties() {
 
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <StaggerContainer className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {propertyCompactZones.map((zone) => (
-              <div key={zone.id} className="bg-white rounded-xl shadow-lg overflow-hidden">
-                <div className="h-64">
-                  <ImageWithFallback src={zone.image} alt={zone.imageAlt} className="h-full w-full object-cover" />
-                </div>
-                <div className="p-8">
-                  <div className="inline-block bg-[#84cc16] text-white px-3 py-1 rounded mb-3 text-sm" style={{ fontWeight: 600 }}>
-                    {zone.badgeText}
+              <StaggerItem key={zone.id}>
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                  <div className="h-64">
+                    <ImageWithFallback src={zone.image} alt={zone.imageAlt} className="h-full w-full object-cover" />
                   </div>
-                  <h3 className="text-3xl mb-4 text-gray-900" style={{ fontWeight: 700 }}>
-                    {zone.title}
-                  </h3>
-                  <p className="text-gray-700 mb-4">{zone.description}</p>
-                  <div className="space-y-2 text-sm">
-                    <p>
-                      <span className="text-gray-600">Area:</span>{' '}
-                      <span style={{ fontWeight: 600 }}>{zone.areaLine}</span>
-                    </p>
-                    <p>
-                      <span className="text-gray-600">Location:</span>{' '}
-                      <span style={{ fontWeight: 600 }}>{zone.locationLine}</span>
-                    </p>
+                  <div className="p-8">
+                    <div className="inline-block bg-[#84cc16] text-white px-3 py-1 rounded mb-3 text-sm" style={{ fontWeight: 600 }}>
+                      {zone.badgeText}
+                    </div>
+                    <h3 className="text-3xl mb-4 text-gray-900" style={{ fontWeight: 700 }}>
+                      {zone.title}
+                    </h3>
+                    <p className="text-gray-700 mb-4">{zone.description}</p>
+                    <div className="space-y-2 text-sm">
+                      <p>
+                        <span className="text-gray-600">Area:</span>{' '}
+                        <span style={{ fontWeight: 600 }}>{zone.areaLine}</span>
+                      </p>
+                      <p>
+                        <span className="text-gray-600">Location:</span>{' '}
+                        <span style={{ fontWeight: 600 }}>{zone.locationLine}</span>
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </div>
       </section>
 
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
+          <FadeIn className="text-center mb-12">
             <h2 className="text-4xl mb-4 text-gray-900" style={{ fontWeight: 700 }}>
               {propertyInfrastructureSection.title}
             </h2>
             <p className="text-xl text-gray-600">{propertyInfrastructureSection.subtitle}</p>
-          </div>
+          </FadeIn>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
             {propertyInfrastructureFeatures.map((item) => {

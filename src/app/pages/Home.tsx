@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import {
   ArrowRight,
   TrendingUp,
@@ -10,6 +9,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router";
 import { ImageWithFallback } from "@/components/common/ImageWithFallback";
+import { FadeIn, StaggerContainer, StaggerItem } from "@/components/animations";
 import { images } from "@/constants/images";
 import { featuredEconomicZones } from "@/data/properties";
 import {
@@ -36,40 +36,6 @@ const partnerTextClass: Record<
 };
 
 export function Home() {
-  // Animation variants for refined, formal motion
-  const fadeInUp = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.9,
-      },
-    },
-  };
-
-  const staggerContainer = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.1,
-      },
-    },
-  };
-
-  const scaleInFade = {
-    hidden: { opacity: 0, scale: 0.98 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        duration: 0.8,
-      },
-    },
-  };
-
   return (
     <div className="w-full">
       {/* HERO SECTION - Elevated & Premium */}
@@ -84,117 +50,62 @@ export function Home() {
           <div className="absolute inset-0 bg-black/50" />
         </div>
 
-        {/* Hero Content */}
-        <motion.div
-          className="relative z-10 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 text-center py-16 lg:py-0"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1 }}
-        >
+        {/* Hero Content - Elegant Fade-In Animation */}
+        <FadeIn className="relative z-10 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 text-center py-16 lg:py-0">
           {/* Headline - Premium Typography */}
           <div className="mb-8 lg:mb-10 space-y-3 lg:space-y-4">
-            <motion.h1
+            <h1
               className="text-4xl sm:text-5xl lg:text-7xl text-white leading-tight tracking-tight"
               style={{ fontWeight: 800, letterSpacing: "-0.025em" }}
-              variants={fadeInUp}
-              initial="hidden"
-              animate="visible"
             >
               {homeHero.titleLine1}
-            </motion.h1>
-            <motion.h2
+            </h1>
+            <h2
               className="text-3xl sm:text-4xl lg:text-6xl text-[#84cc16] leading-tight tracking-tight"
               style={{ fontWeight: 700, letterSpacing: "-0.02em" }}
-              variants={fadeInUp}
-              initial="hidden"
-              animate="visible"
-              transition={{
-                duration: 0.9,
-                delay: 0.2,
-              }}
             >
               {homeHero.titleLine2}
-            </motion.h2>
+            </h2>
           </div>
 
           {/* Subtitle - Elegant Supporting Text */}
-          <motion.p
-            className="text-base sm:text-lg lg:text-xl text-gray-100 max-w-3xl mx-auto mb-10 lg:mb-12 leading-relaxed font-light tracking-wide"
-            variants={fadeInUp}
-            initial="hidden"
-            animate="visible"
-            transition={{
-              duration: 0.9,
-              delay: 0.4,
-            }}
-          >
+          <p className="text-base sm:text-lg lg:text-xl text-gray-100 max-w-3xl mx-auto mb-10 lg:mb-12 leading-relaxed font-light tracking-wide">
             {homeHero.subtitle}
-          </motion.p>
+          </p>
 
           {/* CTA Button - Sleek & Premium */}
-          <motion.div
-            variants={fadeInUp}
-            initial="hidden"
-            animate="visible"
-            transition={{
-              duration: 0.9,
-              delay: 0.6,
-            }}
+          <Link
+            to={homeHero.ctaPath}
+            className="inline-flex items-center gap-3 bg-[#059669] hover:bg-[#047857] text-white px-8 sm:px-10 py-3 lg:py-4 rounded-lg transition-all duration-500 shadow-lg hover:shadow-2xl hover:-translate-y-1 border border-emerald-500/30 font-semibold text-base lg:text-lg whitespace-nowrap"
           >
-            <Link
-              to={homeHero.ctaPath}
-              className="inline-flex items-center gap-3 bg-[#059669] hover:bg-[#047857] text-white px-8 sm:px-10 py-3 lg:py-4 rounded-lg transition-all duration-500 shadow-lg hover:shadow-2xl hover:-translate-y-1 border border-emerald-500/30 font-semibold text-base lg:text-lg whitespace-nowrap"
-            >
-              {homeHero.ctaLabel}
-              <ArrowRight className="w-5 h-5 transition-transform" />
-            </Link>
-          </motion.div>
-        </motion.div>
+            {homeHero.ctaLabel}
+            <ArrowRight className="w-5 h-5 transition-transform" />
+          </Link>
+        </FadeIn>
 
-        {/* Scroll Indicator */}
-        <motion.div
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10"
-          animate={{ y: [0, 8, 0] }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        >
+        {/* Scroll Indicator - Gentle Animation */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 animate-bounce">
           <div className="flex flex-col items-center gap-2">
             <span className="text-white/60 text-sm font-medium">
               Scroll to explore
             </span>
             <div className="w-6 h-10 border-2 border-white/40 rounded-full flex items-start justify-center p-2">
-              <div className="w-1 h-2 bg-white/60 rounded-full" />
+              <div className="w-1 h-2 bg-white/60 rounded-full animate-pulse" />
             </div>
           </div>
-        </motion.div>
+        </div>
       </section>
 
       {/* PREMIUM STATS BANNER - Minimalist & Elegant */}
-      <motion.section
-        className="py-16 sm:py-20 lg:py-24 bg-gradient-to-r from-[#f9fafb] to-[#f3f4f6] border-b border-gray-200"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-        viewport={{ once: true, amount: 0.3 }}
-      >
+      <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-r from-[#f9fafb] to-[#f3f4f6] border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10 lg:gap-12"
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-          >
+          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10 lg:gap-12">
             {homeStats.map((stat) => {
               const Icon = statIcons[stat.icon];
               return (
-                <motion.div
+                <StaggerItem
                   key={stat.label}
                   className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 group text-center sm:text-left"
-                  variants={fadeInUp}
                 >
                   {/* Icon Badge - Subtle & Premium */}
                   <div
@@ -218,30 +129,18 @@ export function Home() {
                       {stat.label}
                     </p>
                   </div>
-                </motion.div>
+                </StaggerItem>
               );
             })}
-          </motion.div>
+          </StaggerContainer>
         </div>
-      </motion.section>
+      </section>
 
       {/* FEATURED ZONES - 4-Column Premium Grid */}
-      <motion.section
-        className="py-20 sm:py-24 lg:py-28 bg-white"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-        viewport={{ once: true, amount: 0.2 }}
-      >
+      <section className="py-20 sm:py-24 lg:py-28 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Section Header */}
-          <motion.div
-            className="text-center mb-12 sm:mb-16 lg:mb-20 space-y-4 lg:space-y-5"
-            variants={fadeInUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-          >
+          {/* Section Header - Elegant Fade-In */}
+          <FadeIn className="text-center mb-12 sm:mb-16 lg:mb-20 space-y-4 lg:space-y-5">
             <h2
               className="text-3xl sm:text-4xl lg:text-5xl text-gray-900 tracking-tight"
               style={{ fontWeight: 800, letterSpacing: "-0.02em" }}
@@ -251,21 +150,14 @@ export function Home() {
             <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed font-light">
               {homeFeaturedSection.subtitle}
             </p>
-          </motion.div>
+          </FadeIn>
 
-          {/* 4-Column Grid - Sleek Cards */}
-          <motion.div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8"
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
-          >
+          {/* 4-Column Grid - Staggered Card Reveals */}
+          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             {featuredEconomicZones.map((zone, index) => (
-              <motion.div
+              <StaggerItem
                 key={index}
                 className="group bg-white rounded-xl overflow-hidden border border-gray-100 hover:border-gray-200 transition-all duration-500 hover:shadow-md hover:-translate-y-1 cursor-pointer"
-                variants={scaleInFade}
               >
                 {/* Image Container - Premium Hover Effect */}
                 <div className="relative h-48 sm:h-52 lg:h-56 overflow-hidden bg-gray-100">
@@ -307,29 +199,17 @@ export function Home() {
                     <ArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" />
                   </Link>
                 </div>
-              </motion.div>
+              </StaggerItem>
             ))}
-          </motion.div>
+          </StaggerContainer>
         </div>
-      </motion.section>
+      </section>
 
       {/* TRUST BANNER - Partner Logos in Grayscale */}
-      <motion.section
-        className="py-20 sm:py-24 lg:py-28 bg-gradient-to-b from-gray-50 to-white border-t border-gray-100"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-        viewport={{ once: true, amount: 0.3 }}
-      >
+      <section className="py-20 sm:py-24 lg:py-28 bg-gradient-to-b from-gray-50 to-white border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Section Header */}
-          <motion.div
-            className="text-center mb-12 sm:mb-16 lg:mb-20 space-y-3 lg:space-y-4"
-            variants={fadeInUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-          >
+          {/* Section Header - Elegant Fade-In */}
+          <FadeIn className="text-center mb-12 sm:mb-16 lg:mb-20 space-y-3 lg:space-y-4">
             <h2
               className="text-3xl sm:text-4xl lg:text-5xl text-gray-900 tracking-tight"
               style={{ fontWeight: 800, letterSpacing: "-0.02em" }}
@@ -339,21 +219,14 @@ export function Home() {
             <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed font-light">
               {homePartnersSection.subtitle}
             </p>
-          </motion.div>
+          </FadeIn>
 
-          {/* Partner Logos Grid - Grayscale Hover Effect */}
-          <motion.div
-            className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 items-center"
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-          >
+          {/* Partner Logos Grid - Staggered Reveals */}
+          <StaggerContainer className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 items-center">
             {homePartners.map((partner, index) => (
-              <motion.div
+              <StaggerItem
                 key={partner.name}
                 className="flex items-center justify-center p-4 sm:p-6 lg:p-8 rounded-lg lg:rounded-xl border border-gray-200 bg-white hover:bg-gray-50 transition-all duration-500 group cursor-pointer hover:border-gray-300 hover:shadow-sm h-24 sm:h-28 lg:h-32"
-                variants={scaleInFade}
               >
                 {/* Logo or Text - Premium Presentation */}
                 <div
@@ -361,30 +234,20 @@ export function Home() {
                 >
                   {partner.name}
                 </div>
-              </motion.div>
+              </StaggerItem>
             ))}
-          </motion.div>
+          </StaggerContainer>
         </div>
-      </motion.section>
+      </section>
 
       {/* CTA Section - Drive Engagement */}
-      <motion.section
-        className="py-20 sm:py-24 lg:py-28 bg-gradient-to-br from-[#059669] to-[#047857] text-white relative overflow-hidden"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-        viewport={{ once: true, amount: 0.3 }}
-      >
+      <section className="py-20 sm:py-24 lg:py-28 bg-gradient-to-br from-[#059669] to-[#047857] text-white relative overflow-hidden">
         {/* Decorative Elements */}
         <div className="absolute top-0 right-0 w-72 h-72 sm:w-96 sm:h-96 bg-white/5 rounded-full -mr-36 sm:-mr-48 -mt-36 sm:-mt-48" />
         <div className="absolute bottom-0 left-0 w-56 h-56 sm:w-72 sm:h-72 bg-white/5 rounded-full -ml-28 sm:-ml-36 -mb-28 sm:-mb-36" />
 
-        <motion.div
+        <FadeIn
           className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 py-12 lg:py-0"
-          variants={fadeInUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
         >
           <h2
             className="text-3xl sm:text-4xl lg:text-5xl mb-6 lg:mb-8 tracking-tight leading-tight"
@@ -396,25 +259,15 @@ export function Home() {
             Discover how our premier economic zones can support your
             enterprise's growth and success.
           </p>
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{
-              duration: 0.9,
-              delay: 0.2,
-            }}
-            viewport={{ once: true, amount: 0.3 }}
+          <Link
+            to="/leasing"
+            className="inline-flex items-center gap-3 bg-white text-[#059669] hover:bg-gray-50 px-8 sm:px-10 py-3 lg:py-4 rounded-lg transition-all duration-500 shadow-lg hover:shadow-2xl hover:-translate-y-1 font-semibold whitespace-nowrap"
           >
-            <Link
-              to="/leasing"
-              className="inline-flex items-center gap-3 bg-white text-[#059669] hover:bg-gray-50 px-8 sm:px-10 py-3 lg:py-4 rounded-lg transition-all duration-500 shadow-lg hover:shadow-2xl hover:-translate-y-1 font-semibold whitespace-nowrap"
-            >
-              Explore Leasing Options
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-          </motion.div>
-        </motion.div>
-      </motion.section>
+            Explore Leasing Options
+            <ArrowRight className="w-5 h-5" />
+          </Link>
+        </FadeIn>
+      </section>
     </div>
   );
 }

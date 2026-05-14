@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { MapPin, Phone, Mail, Clock, Send, Check } from "lucide-react";
 import { ImageWithFallback } from "@/components/common/ImageWithFallback";
+import { FadeIn, StaggerContainer, StaggerItem } from "@/components/animations";
 import {
   contactLocationsSection,
   contactOffices,
@@ -137,7 +138,7 @@ export function Contact() {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-            <div className="lg:col-span-2">
+            <FadeIn className="lg:col-span-2">
               <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
                 <h2
                   className="text-3xl mb-6 text-gray-900"
@@ -294,11 +295,13 @@ export function Contact() {
                   </button>
                 </form>
               </div>
-            </div>
+            </FadeIn>
 
-            <div className="space-y-6">
+            <StaggerContainer className="space-y-6">
               {contactSidebarCards.map((card) => (
-                <SidebarCard key={card.title} card={card} />
+                <StaggerItem key={card.title}>
+                </StaggerItem>
+              StaggerContainerSidebarCard key={card.title} card={card} />
               ))}
             </div>
           </div>
@@ -306,8 +309,7 @@ export function Contact() {
       </section>
 
       <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
+        <diFadeIn className="text-center mb-12">
             <h2
               className="text-4xl mb-4 text-gray-900"
               style={{ fontWeight: 700 }}
@@ -317,13 +319,11 @@ export function Contact() {
             <p className="text-xl text-gray-600">
               {contactLocationsSection.subtitle}
             </p>
-          </div>
+          </FadeIn>
 
+          <StaggerContainer
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {contactOffices.map((office) => (
-              <div
-                key={office.id}
-                className="bg-white rounded-xl shadow-lg overflow-hidden"
+            {coStaggerItem key={office.id}  className="bg-white rounded-xl shadow-lg overflow-hidden"
               >
                 <div className="relative h-64 overflow-hidden bg-gradient-to-br from-green-100 to-blue-100">
                   <ImageWithFallback
@@ -388,8 +388,8 @@ export function Contact() {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-    </div>
+        </div>StaggerItem>
+            ))}
+          </StaggerContainer
   );
 }

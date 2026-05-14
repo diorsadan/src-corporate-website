@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Building2, Download, FileText, ClipboardList, MapPin, Key, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router';
 import { ImageWithFallback } from '@/components/common/ImageWithFallback';
+import { FadeIn, StaggerContainer, StaggerItem } from '@/components/animations';
 import {
   leasingCtaSection,
   leasingDownloadSection,
@@ -63,7 +64,9 @@ export function Leasing() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredListings.map((listing) => (
+            <StaggerContainer className="contents">
+              {filteredListings.map((listing) => (
+              <StaggerItem key={listing.id}>
               <div key={listing.id} className="bg-white rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
                 <div className="h-56 overflow-hidden relative">
                   <ImageWithFallback
@@ -114,18 +117,18 @@ export function Leasing() {
 
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <FadeIn className="text-center mb-16">
             <h2 className="text-4xl mb-4 text-gray-900" style={{ fontWeight: 700 }}>
               {leasingProcessSection.title}
             </h2>
             <p className="text-xl text-gray-600">{leasingProcessSection.subtitle}</p>
-          </div>
+          </FadeIn>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <StaggerContainer className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {leasingProcessSteps.map((process, index) => {
               const Icon = processIconComponents[process.icon];
               return (
-                <div key={process.step} className="relative">
+              <StaggerItem key={process.step}>
                   <div className="bg-white p-8 rounded-xl shadow-lg text-center h-full">
                     <div className="text-[#84cc16] text-5xl mb-4 opacity-20" style={{ fontWeight: 900 }}>
                       {process.step}
@@ -145,13 +148,14 @@ export function Leasing() {
                     </div>
                   )}
                 </div>
+              </StaggerItem>
               );
             })}
-          </div>
+          </StaggerContainer>
         </div>
       </section>
 
-      <section className="py-20 bg-gradient-to-br from-[#059669] to-[#047857]">
+      <seFadeInon className="py-20 bg-gradient-to-br from-[#059669] to-[#047857]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full mb-6">
             <Download className="w-10 h-10 text-white" />
@@ -176,11 +180,11 @@ export function Leasing() {
               <span style={{ fontWeight: 600 }}>{leasingDownloadSection.rateSheetLabel}</span>
             </button>
           </div>
-        </div>
+        </FadeIn>
       </section>
 
       <section className="py-16 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <FadeIn className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl mb-4 text-gray-900" style={{ fontWeight: 700 }}>
             {leasingCtaSection.title}
           </h2>
@@ -193,7 +197,7 @@ export function Leasing() {
             {leasingCtaSection.buttonLabel}
             <ArrowRight className="w-5 h-5" />
           </Link>
-        </div>
+        </FadeIn>
       </section>
     </div>
   );
