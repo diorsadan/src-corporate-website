@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import {
   MapPin,
   Zap,
@@ -57,53 +58,7 @@ export function Properties() {
         </div>
       </section>
 
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <FadeIn className="text-center mb-12">
-            <h2
-              className="text-4xl mb-4 text-gray-900"
-              style={{ fontWeight: 700 }}
-            >
-              {propertyMapSection.title}
-            </h2>
-            <p className="text-xl text-gray-600">
-              {propertyMapSection.subtitle}
-            </p>
-          </FadeIn>
 
-          <FadeIn delay={0.15}>
-            <div className="bg-gray-100 rounded-xl p-8 shadow-lg">
-              <div className="relative h-[500px] bg-gradient-to-br from-green-50 to-blue-50 rounded-lg overflow-hidden">
-                <ImageWithFallback
-                  src={images.maps.soccskargenOverview}
-                  alt="Map of SOCCSKSARGEN region"
-                  className="h-full w-full object-cover opacity-60"
-                />
-
-                {propertyMapPins.map((pin) => (
-                  <div key={pin.label} className={pin.containerClass}>
-                    <div className="relative">
-                      <MapPin
-                        className="w-12 h-12 text-[#059669] fill-[#84cc16] drop-shadow-lg animate-bounce"
-                        style={
-                          pin.animationDelay
-                            ? { animationDelay: pin.animationDelay }
-                            : undefined
-                        }
-                      />
-                      <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-white px-4 py-2 rounded-lg shadow-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-                        <p className="text-sm" style={{ fontWeight: 600 }}>
-                          {pin.label}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </FadeIn>
-        </div>
-      </section>
 
       {propertySplitZones.map((zone, zoneIndex) => (
         <section key={zone.id} className={`py-16 ${zone.sectionClass}`}>
@@ -336,10 +291,16 @@ export function Properties() {
         </div>
       </section>
 
-      {/* Zone Locations Interactive Map */}
+      {/* Zone Locations Interactive Map - Relocated to Bottom */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <FadeIn className="text-center mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            viewport={{ once: true, amount: 0.2 }}
+            className="text-center mb-12"
+          >
             <h2
               className="text-4xl mb-4 text-gray-900"
               style={{ fontWeight: 700 }}
@@ -349,11 +310,16 @@ export function Properties() {
             <p className="text-xl text-gray-600">
               Strategic industrial zones across SOCCSKSARGEN
             </p>
-          </FadeIn>
+          </motion.div>
 
-          <FadeIn>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
+            viewport={{ once: true, amount: 0.2 }}
+          >
             <ZoneLocationsMap />
-          </FadeIn>
+          </motion.div>
         </div>
       </section>
     </div>
