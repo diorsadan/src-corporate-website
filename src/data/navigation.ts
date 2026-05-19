@@ -33,7 +33,7 @@ export const footerSections: { title: string; links: FooterNavLink[] }[] = [
 
 export const footerContactLines: { icon: 'phone' | 'mail' | 'map'; text: string }[] = [
   { icon: 'phone', text: '+63 83 228 8766' },
-  { icon: 'mail', text: 'info@saranganiresources.com' },
+  { icon: 'mail', text: 'nico_led@yahoo.com' },
   { icon: 'map', text: 'Polomolok, South Cotabato' },
 ];
 

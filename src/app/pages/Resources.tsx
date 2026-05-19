@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   CheckCircle,
@@ -9,15 +10,102 @@ import {
   Briefcase,
   DollarSign,
   FileText,
-  Building,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
-import { ImageWithFallback } from "@/components/common/ImageWithFallback";
 import {
   FadeIn,
   StaggerContainer,
   StaggerItem,
 } from "@/components/animations/index";
 import { images } from "@/constants/images";
+
+const carouselImagePaths = [
+  "/images/soccsksargen/1.jpg",
+  "/images/soccsksargen/2.jpg",
+  "/images/soccsksargen/3.jpg",
+  "/images/soccsksargen/4.jpg",
+  "/images/soccsksargen/5.jpg",
+  "/images/soccsksargen/6.jpg",
+] as const;
+
+function InvestorCarousel() {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const startAutoPlay = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    intervalRef.current = window.setInterval(() => {
+      setActiveIndex((currentIndex) =>
+        (currentIndex + 1) % carouselImagePaths.length,
+      );
+    }, 3000);
+  };
+
+  useEffect(() => {
+    startAutoPlay();
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
+
+  const handleNext = () => {
+    setActiveIndex((currentIndex) =>
+      (currentIndex + 1) % carouselImagePaths.length,
+    );
+    startAutoPlay();
+  };
+
+  const handlePrevious = () => {
+    setActiveIndex((currentIndex) =>
+      (currentIndex - 1 + carouselImagePaths.length) %
+      carouselImagePaths.length,
+    );
+    startAutoPlay();
+  };
+
+  return (
+    <div className="w-full h-[500px] rounded-2xl overflow-hidden shadow-md border border-slate-100 bg-slate-900 relative group">
+      {carouselImagePaths.map((src, index) => (
+        <motion.div
+          key={src}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: activeIndex === index ? 1 : 0 }}
+          transition={{ duration: 1.0, ease: "easeInOut" }}
+          className="absolute inset-0"
+        >
+          <img
+            src={src}
+            alt={`SOCCSKSARGEN premium image ${index + 1}`}
+            className="object-cover w-full h-full"
+          />
+        </motion.div>
+      ))}
+
+      <motion.button
+        onClick={handlePrevious}
+        aria-label="Previous Image"
+        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 backdrop-blur-sm text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
+        whileTap={{ scale: 0.95 }}
+      >
+        <ChevronLeft className="w-6 h-6" />
+      </motion.button>
+
+      <motion.button
+        onClick={handleNext}
+        aria-label="Next Image"
+        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 backdrop-blur-sm text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
+        whileTap={{ scale: 0.95 }}
+      >
+        <ChevronRight className="w-6 h-6" />
+      </motion.button>
+    </div>
+  );
+}
 
 export function Resources() {
   return (
@@ -49,7 +137,7 @@ export function Resources() {
             </p>
           </FadeIn>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <FadeIn>
               <div className="space-y-6">
                 <div className="flex gap-4">
@@ -140,16 +228,7 @@ export function Resources() {
               </div>
             </FadeIn>
 
-            <FadeIn
-              delay={0.15}
-              className="rounded-lg overflow-hidden shadow-xl"
-            >
-              <ImageWithFallback
-                src={images.resources.investorFeature}
-                alt="Business growth"
-                className="h-full w-full object-cover"
-              />
-            </FadeIn>
+            <InvestorCarousel />
           </div>
         </div>
       </section>
@@ -348,87 +427,6 @@ export function Resources() {
             </div>
           </FadeIn>
         </div>
-      </section>
-
-      {/* PEZA Customs Office */}
-      <section className="py-20 bg-white">
-        <FadeIn className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-br from-gray-50 to-white border-2 border-[#059669] rounded-xl p-10 shadow-xl">
-            <div className="flex items-start gap-6">
-              <div className="flex-shrink-0 w-16 h-16 bg-[#059669] rounded-lg flex items-center justify-center">
-                <Building className="w-8 h-8 text-white" />
-              </div>
-              <div className="flex-1">
-                <h2
-                  className="text-3xl mb-4 text-gray-900"
-                  style={{ fontWeight: 700 }}
-                >
-                  Joint PEZA Customs Office
-                </h2>
-                <p className="text-lg text-gray-700 mb-6 leading-relaxed">
-                  Our economic zones feature an on-site Joint PEZA Customs
-                  Office, providing seamless customs clearance and trade
-                  facilitation services. This dedicated facility ensures faster
-                  processing of imports and exports, reducing delays and
-                  administrative burdens for our locators.
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h4
-                      className="text-lg mb-3 text-gray-900"
-                      style={{ fontWeight: 600 }}
-                    >
-                      Services Offered:
-                    </h4>
-                    <ul className="space-y-2 text-gray-700">
-                      <li className="flex items-start gap-2">
-                        <CheckCircle className="w-5 h-5 text-[#059669] mt-0.5 flex-shrink-0" />
-                        <span>Import/Export documentation processing</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircle className="w-5 h-5 text-[#059669] mt-0.5 flex-shrink-0" />
-                        <span>Customs clearance and inspection</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircle className="w-5 h-5 text-[#059669] mt-0.5 flex-shrink-0" />
-                        <span>Bonded warehouse supervision</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <CheckCircle className="w-5 h-5 text-[#059669] mt-0.5 flex-shrink-0" />
-                        <span>Trade compliance advisory</span>
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h4
-                      className="text-lg mb-3 text-gray-900"
-                      style={{ fontWeight: 600 }}
-                    >
-                      Office Hours:
-                    </h4>
-                    <p className="text-gray-700 mb-4">
-                      Monday - Friday: 8:00 AM - 5:00 PM
-                    </p>
-
-                    <h4
-                      className="text-lg mb-3 text-gray-900"
-                      style={{ fontWeight: 600 }}
-                    >
-                      Contact:
-                    </h4>
-                    <p className="text-gray-700">
-                      Phone: +63 83 552 7890
-                      <br />
-                      Email: customs@src-peza.gov.ph
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </FadeIn>
       </section>
 
       {/* CTA Section */}

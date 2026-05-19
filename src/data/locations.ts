@@ -31,14 +31,14 @@ export type ContactSidebarCard =
 export const contactSidebarCards: ContactSidebarCard[] = [
   {
     variant: 'gradient',
-    title: 'Leasing Department',
+    title: 'Polomolok Main Office',
     blocks: [
       { type: 'phone', headline: 'Direct Line', value: '+63 83 228 8766' },
       { type: 'email', headline: 'Email', value: 'leasing@saranganiresources.com' },
       {
         type: 'hours',
         headline: 'Business Hours',
-        lines: ['Mon-Fri: 8:00 AM - 5:00 PM', 'Sat: 9:00 AM - 12:00 PM'],
+        lines: ['Mon-Fri: 8:00 AM - 5:00 PM'],
       },
     ],
   },
@@ -65,11 +65,11 @@ export const contactOffices = [
     id: 'polomolok',
     mapImage: images.contact.mapPolomolok,
     mapAlt: 'Map showing Polomolok headquarters location',
-    title: 'Polomolok Headquarters',
+    title: 'Polomolok Main Office',
     orgLine: 'Sarangani Resources Corporation',
     addressLines: ['National Highway, Cannery Site', 'Polomolok, South Cotabato 9504', 'Philippines'],
     phone: '+63 83 228 8766',
-    email: 'info@saranganiresources.com',
+    email: 'nico_led@yahoo.com',
   },
   {
     id: 'gensan',
