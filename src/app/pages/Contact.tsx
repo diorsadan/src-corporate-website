@@ -1,6 +1,23 @@
+"use client";
+
 import { useState } from "react";
-import { MapPin, Phone, Mail, Clock, Send, Check } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  MapPin,
+  Phone,
+  Mail,
+  Clock,
+  Send,
+  Check,
+  AlertCircle,
+  Loader,
+} from "lucide-react";
 import { ImageWithFallback } from "@/components/common/ImageWithFallback";
+import {
+  FadeIn,
+  StaggerContainer,
+  StaggerItem,
+} from "@/components/animations/index";
 import {
   contactLocationsSection,
   contactOffices,
@@ -10,7 +27,6 @@ import {
   inquiryTypeOptions,
   type ContactSidebarCard,
 } from "@/data/locations";
-import { contactInfo, generateMailtoLink } from "@/data/contact";
 
 function SidebarCard({ card }: { card: ContactSidebarCard }) {
   const isGradient = card.variant === "gradient";
@@ -68,6 +84,18 @@ function SidebarCard({ card }: { card: ContactSidebarCard }) {
   );
 }
 
+// Rotating loader spinner component
+function LoadingSpinner() {
+  return (
+    <motion.div
+      animate={{ rotate: 360 }}
+      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+    >
+      <Loader className="w-5 h-5" />
+    </motion.div>
+  );
+}
+
 export function Contact() {
   const [formData, setFormData] = useState({
     fullName: "",
@@ -78,39 +106,10 @@ export function Contact() {
     message: "",
   });
 
-  const [showThankYou, setShowThankYou] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Find the label for the selected inquiry type
-    const selectedOption = inquiryTypeOptions.find(
-      (opt) => opt.value === formData.inquiryType,
-    );
-    const inquiryTypeLabel = selectedOption?.label || formData.inquiryType;
-
-    // Generate mailto link and open email client
-    const mailtoLink = generateMailtoLink(formData, inquiryTypeLabel);
-    window.location.href = mailtoLink;
-
-    // Show thank you message
-    setShowThankYou(true);
-
-    // Reset form
-    setFormData({
-      fullName: "",
-      companyName: "",
-      email: "",
-      contactNumber: "",
-      inquiryType: "",
-      message: "",
-    });
-
-    // Hide thank you message after 5 seconds
-    setTimeout(() => {
-      setShowThankYou(false);
-    }, 5000);
-  };
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -121,6 +120,121 @@ export function Contact() {
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Validate required fields
+    if (
+      !formData.fullName ||
+      !formData.companyName ||
+      !formData.email ||
+      !formData.contactNumber ||
+      !formData.inquiryType ||
+      !formData.message
+    ) {
+      setErrorMessage("Please fill in all required fields");
+      setShowError(true);
+      setTimeout(() => setShowError(false), 4000);
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setErrorMessage("Please enter a valid email address");
+      setShowError(true);
+      setTimeout(() => setShowError(false), 4000);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setShowError(false);
+
+    try {
+      // Find the label for the selected inquiry type
+      const selectedOption = inquiryTypeOptions.find(
+        (opt) => opt.value === formData.inquiryType,
+      );
+      const inquiryTypeLabel = selectedOption?.label || formData.inquiryType;
+
+      // Build comprehensive message combining all inquiry details
+      const comprehensiveMessage = `Company: ${formData.companyName}\nPhone: ${formData.contactNumber}\nInquiry Type: ${inquiryTypeLabel}\n\nMessage:\n${formData.message}`;
+
+      // BULLETPROOF Web3Forms Payload Structure
+      const payload = {
+        access_key: "3b03da7a-b129-438a-a1a4-1326b4aa6cd2",
+        subject: "New SRC Website Inquiry",
+        from_name: "SRC Corporate Website",
+        name: formData.fullName,
+        email: formData.email,
+        cc: "diorsadan@addu.edu.ph",
+        message: comprehensiveMessage,
+        company: formData.companyName,
+        phone: formData.contactNumber,
+        inquiry_type: inquiryTypeLabel,
+        redirect: false,
+      };
+
+      console.log("📤 Sending Web3Forms payload:", payload);
+
+      // Submit to Web3Forms API with STRICT headers
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      // Parse response
+      const result = await response.json();
+      console.log("✅ Web3Forms Response:", result);
+
+      // Check for success response
+      if (result.success === true || result.ok === true) {
+        console.log("✨ Form submitted successfully!");
+        setShowSuccess(true);
+
+        // Reset form after brief delay
+        setTimeout(() => {
+          setFormData({
+            fullName: "",
+            companyName: "",
+            email: "",
+            contactNumber: "",
+            inquiryType: "",
+            message: "",
+          });
+        }, 800);
+
+        // Hide success message after 6 seconds
+        setTimeout(() => {
+          setShowSuccess(false);
+        }, 6000);
+      } else {
+        // Web3Forms returned an error response
+        const errorMsg =
+          result.message || "Failed to submit form. Please try again later.";
+        console.error("❌ Web3Forms Error:", errorMsg);
+        setErrorMessage(errorMsg);
+        setShowError(true);
+        setTimeout(() => setShowError(false), 4000);
+      }
+    } catch (error) {
+      console.error("🚨 Network/Parse Error:", error);
+      const errorMsg =
+        error instanceof Error
+          ? error.message
+          : "An error occurred while submitting the form.";
+      setErrorMessage(errorMsg || "Please try again later.");
+      setShowError(true);
+      setTimeout(() => setShowError(false), 4000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -138,168 +252,318 @@ export function Contact() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-                <h2
-                  className="text-3xl mb-6 text-gray-900"
-                  style={{ fontWeight: 700 }}
-                >
-                  {contactFormSection.title}
-                </h2>
-
-                {showThankYou && (
-                  <div className="mb-6 p-4 bg-[#059669] text-white rounded-lg flex items-center gap-3">
-                    <Check className="w-5 h-5 flex-shrink-0" />
-                    <div>
-                      <p style={{ fontWeight: 600 }}>
-                        Thank you for your inquiry!
-                      </p>
-                      <p className="text-sm text-green-100">
-                        Your email client will open with the inquiry details.
-                        Please send the email to complete your submission.
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label
-                        htmlFor="fullName"
-                        className="block mb-2 text-gray-700"
-                      >
-                        Full Name <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="fullName"
-                        name="fullName"
-                        value={formData.fullName}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#059669] focus:border-transparent"
-                        placeholder="Juan Dela Cruz"
-                      />
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="companyName"
-                        className="block mb-2 text-gray-700"
-                      >
-                        Company Name <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        id="companyName"
-                        name="companyName"
-                        value={formData.companyName}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#059669] focus:border-transparent"
-                        placeholder="Your Company Inc."
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label
-                        htmlFor="email"
-                        className="block mb-2 text-gray-700"
-                      >
-                        Email Address <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#059669] focus:border-transparent"
-                        placeholder="you@company.com"
-                      />
-                    </div>
-
-                    <div>
-                      <label
-                        htmlFor="contactNumber"
-                        className="block mb-2 text-gray-700"
-                      >
-                        Contact Number <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="tel"
-                        id="contactNumber"
-                        name="contactNumber"
-                        value={formData.contactNumber}
-                        onChange={handleChange}
-                        required
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#059669] focus:border-transparent"
-                        placeholder="+63 912 345 6789"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="inquiryType"
-                      className="block mb-2 text-gray-700"
+              <FadeIn className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+                <AnimatePresence mode="wait">
+                  {!showSuccess ? (
+                    <motion.div
+                      key="form"
+                      initial={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.4 }}
                     >
-                      Nature of Inquiry <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      id="inquiryType"
-                      name="inquiryType"
-                      value={formData.inquiryType}
-                      onChange={handleChange}
-                      required
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#059669] focus:border-transparent bg-white"
-                    >
-                      {inquiryTypeOptions.map((opt) => (
-                        <option key={opt.label} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                      <h2
+                        className="text-3xl mb-6 text-gray-900"
+                        style={{ fontWeight: 700 }}
+                      >
+                        {contactFormSection.title}
+                      </h2>
 
-                  <div>
-                    <label
-                      htmlFor="message"
-                      className="block mb-2 text-gray-700"
-                    >
-                      Message <span className="text-red-500">*</span>
-                    </label>
-                    <textarea
-                      id="message"
-                      name="message"
-                      value={formData.message}
-                      onChange={handleChange}
-                      required
-                      rows={6}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#059669] focus:border-transparent resize-none"
-                      placeholder="Please provide details about your inquiry..."
-                    />
-                  </div>
+                      {/* Error Alert Banner */}
+                      <AnimatePresence>
+                        {showError && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.3 }}
+                            className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-start gap-3"
+                          >
+                            <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p style={{ fontWeight: 600 }}>Error</p>
+                              <p className="text-sm">{errorMessage}</p>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
 
-                  <button
-                    type="submit"
-                    className="w-full bg-[#059669] hover:bg-[#047857] text-white px-8 py-4 rounded-lg transition-colors shadow-lg flex items-center justify-center gap-2"
-                    style={{ fontWeight: 600 }}
-                  >
-                    <Send className="w-5 h-5" />
-                    Submit Inquiry
-                  </button>
-                </form>
-              </div>
+                      <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 }}
+                          >
+                            <label
+                              htmlFor="fullName"
+                              className="block mb-2 text-gray-700"
+                            >
+                              Full Name <span className="text-red-500">*</span>
+                            </label>
+                            <motion.input
+                              type="text"
+                              id="fullName"
+                              name="fullName"
+                              value={formData.fullName}
+                              onChange={handleChange}
+                              disabled={isSubmitting}
+                              required
+                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#059669] focus:border-transparent transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                              placeholder="Juan Dela Cruz"
+                              whileHover={{ borderColor: "#059669" }}
+                              transition={{ duration: 0.2 }}
+                            />
+                          </motion.div>
+
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.15 }}
+                          >
+                            <label
+                              htmlFor="companyName"
+                              className="block mb-2 text-gray-700"
+                            >
+                              Company Name{" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <motion.input
+                              type="text"
+                              id="companyName"
+                              name="companyName"
+                              value={formData.companyName}
+                              onChange={handleChange}
+                              disabled={isSubmitting}
+                              required
+                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#059669] focus:border-transparent transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                              placeholder="Your Company Inc."
+                              whileHover={{ borderColor: "#059669" }}
+                              transition={{ duration: 0.2 }}
+                            />
+                          </motion.div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                          >
+                            <label
+                              htmlFor="email"
+                              className="block mb-2 text-gray-700"
+                            >
+                              Email Address{" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <motion.input
+                              type="email"
+                              id="email"
+                              name="email"
+                              value={formData.email}
+                              onChange={handleChange}
+                              disabled={isSubmitting}
+                              required
+                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#059669] focus:border-transparent transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                              placeholder="you@company.com"
+                              whileHover={{ borderColor: "#059669" }}
+                              transition={{ duration: 0.2 }}
+                            />
+                          </motion.div>
+
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.25 }}
+                          >
+                            <label
+                              htmlFor="contactNumber"
+                              className="block mb-2 text-gray-700"
+                            >
+                              Contact Number{" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <motion.input
+                              type="tel"
+                              id="contactNumber"
+                              name="contactNumber"
+                              value={formData.contactNumber}
+                              onChange={handleChange}
+                              disabled={isSubmitting}
+                              required
+                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#059669] focus:border-transparent transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                              placeholder="+63 912 345 6789"
+                              whileHover={{ borderColor: "#059669" }}
+                              transition={{ duration: 0.2 }}
+                            />
+                          </motion.div>
+                        </div>
+
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.3 }}
+                        >
+                          <label
+                            htmlFor="inquiryType"
+                            className="block mb-2 text-gray-700"
+                          >
+                            Nature of Inquiry{" "}
+                            <span className="text-red-500">*</span>
+                          </label>
+                          <motion.select
+                            id="inquiryType"
+                            name="inquiryType"
+                            value={formData.inquiryType}
+                            onChange={handleChange}
+                            disabled={isSubmitting}
+                            required
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#059669] focus:border-transparent bg-white transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                            whileHover={{ borderColor: "#059669" }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            {inquiryTypeOptions.map((opt) => (
+                              <option key={opt.label} value={opt.value}>
+                                {opt.label}
+                              </option>
+                            ))}
+                          </motion.select>
+                        </motion.div>
+
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.35 }}
+                        >
+                          <label
+                            htmlFor="message"
+                            className="block mb-2 text-gray-700"
+                          >
+                            Message <span className="text-red-500">*</span>
+                          </label>
+                          <motion.textarea
+                            id="message"
+                            name="message"
+                            value={formData.message}
+                            onChange={handleChange}
+                            disabled={isSubmitting}
+                            required
+                            rows={6}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#059669] focus:border-transparent resize-none transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                            placeholder="Please provide details about your inquiry..."
+                            whileHover={{ borderColor: "#059669" }}
+                            transition={{ duration: 0.2 }}
+                          />
+                        </motion.div>
+
+                        <motion.button
+                          type="submit"
+                          disabled={isSubmitting}
+                          className="w-full bg-[#059669] hover:bg-[#047857] text-white px-8 py-4 rounded-lg transition-colors duration-300 shadow-lg flex items-center justify-center gap-2 disabled:opacity-75 disabled:cursor-not-allowed"
+                          style={{ fontWeight: 600 }}
+                          whileHover={!isSubmitting ? { scale: 1.02 } : {}}
+                          whileTap={!isSubmitting ? { scale: 0.96 } : {}}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{
+                            delay: 0.4,
+                            duration: 0.2,
+                            type: "spring",
+                            stiffness: 350,
+                            damping: 35,
+                          }}
+                        >
+                          {isSubmitting ? (
+                            <>
+                              <LoadingSpinner />
+                              Submitting...
+                            </>
+                          ) : (
+                            <>
+                              <Send className="w-5 h-5" />
+                              Submit Inquiry
+                            </>
+                          )}
+                        </motion.button>
+                      </form>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="success"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.4 }}
+                      className="text-center py-12"
+                    >
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{
+                          delay: 0.2,
+                          type: "spring",
+                          stiffness: 200,
+                          damping: 20,
+                        }}
+                        className="mb-6 inline-flex"
+                      >
+                        <div className="relative">
+                          <motion.div
+                            className="w-20 h-20 bg-[#059669] rounded-full flex items-center justify-center"
+                            animate={{ scale: [1, 1.1, 1] }}
+                            transition={{
+                              delay: 0.4,
+                              duration: 0.6,
+                              repeat: 1,
+                            }}
+                          >
+                            <Check className="w-10 h-10 text-white" />
+                          </motion.div>
+                        </div>
+                      </motion.div>
+
+                      <motion.h3
+                        className="text-3xl mb-4 text-gray-900"
+                        style={{ fontWeight: 700 }}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                      >
+                        Thank You!
+                      </motion.h3>
+
+                      <motion.p
+                        className="text-lg text-gray-600 mb-4"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                      >
+                        Your inquiry has been successfully submitted.
+                      </motion.p>
+
+                      <motion.p
+                        className="text-gray-600"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                      >
+                        The SRC team will carefully review your inquiry and get
+                        back to you as soon as possible.
+                      </motion.p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </FadeIn>
             </div>
 
             <div className="space-y-6">
-              {contactSidebarCards.map((card) => (
-                <SidebarCard key={card.title} card={card} />
-              ))}
+              <StaggerContainer className="space-y-6">
+                {contactSidebarCards.map((card) => (
+                  <StaggerItem key={card.title}>
+                    <SidebarCard card={card} />
+                  </StaggerItem>
+                ))}
+              </StaggerContainer>
             </div>
           </div>
         </div>
@@ -307,7 +571,7 @@ export function Contact() {
 
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
+          <FadeIn className="text-center mb-12">
             <h2
               className="text-4xl mb-4 text-gray-900"
               style={{ fontWeight: 700 }}
@@ -317,11 +581,11 @@ export function Contact() {
             <p className="text-xl text-gray-600">
               {contactLocationsSection.subtitle}
             </p>
-          </div>
+          </FadeIn>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <StaggerContainer className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {contactOffices.map((office) => (
-              <div
+              <StaggerItem
                 key={office.id}
                 className="bg-white rounded-xl shadow-lg overflow-hidden"
               >
@@ -354,40 +618,28 @@ export function Contact() {
                     <p>
                       <span style={{ fontWeight: 600 }}>{office.orgLine}</span>
                       <br />
-                      {office.id === "polomolok" ? (
-                        <>{contactInfo.officeAddress}</>
-                      ) : (
-                        office.addressLines.map((line) => (
-                          <span key={line}>
-                            {line}
-                            <br />
-                          </span>
-                        ))
-                      )}
+                      {office.addressLines.map((line) => (
+                        <span key={line}>
+                          {line}
+                          <br />
+                        </span>
+                      ))}
                     </p>
                     <div className="pt-4 border-t border-gray-200">
                       <p className="flex items-center gap-2 mb-2">
                         <Phone className="w-4 h-4 text-[#059669]" />
-                        <span>
-                          {office.id === "polomolok"
-                            ? contactInfo.officePhone
-                            : office.phone}
-                        </span>
+                        <span>{office.phone}</span>
                       </p>
                       <p className="flex items-center gap-2">
                         <Mail className="w-4 h-4 text-[#059669]" />
-                        <span>
-                          {office.id === "polomolok"
-                            ? contactInfo.primaryEmail
-                            : office.email}
-                        </span>
+                        <span>{office.email}</span>
                       </p>
                     </div>
                   </div>
                 </div>
-              </div>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </div>
       </section>
     </div>
