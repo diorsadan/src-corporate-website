@@ -31,7 +31,7 @@ const carouselImagePaths = [
 
 function InvestorCarousel() {
   const [activeIndex, setActiveIndex] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const startAutoPlay = () => {
     if (intervalRef.current) {
@@ -409,8 +409,10 @@ export function Resources() {
                 </ul>
               </div>
               <div className="text-center md:text-right">
-                <motion.button
-                  className="bg-white text-[#059669] px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors duration-300 shadow-lg"
+                <motion.a
+                  href="/PEZA GUIDELINES.pdf"
+                  download="PEZA GUIDELINES.pdf"
+                  className="inline-flex items-center justify-center bg-white text-[#059669] px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors duration-300 shadow-lg"
                   style={{ fontWeight: 600 }}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.96 }}
@@ -422,58 +424,11 @@ export function Resources() {
                   }}
                 >
                   Download PEZA Guide
-                </motion.button>
+                </motion.a>
               </div>
             </div>
           </FadeIn>
         </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-gray-50">
-        <FadeIn className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2
-            className="text-4xl mb-4 text-gray-900"
-            style={{ fontWeight: 700 }}
-          >
-            Ready to Invest in SOCCSKSARGEN?
-          </h2>
-          <p className="text-xl text-gray-600 mb-8">
-            Our team is here to guide you through PEZA registration and help you
-            maximize available incentives
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <motion.a
-              href="/contact"
-              className="inline-flex items-center justify-center gap-2 bg-[#059669] hover:bg-[#047857] text-white px-8 py-4 rounded-lg transition-colors duration-300 shadow-lg"
-              style={{ fontWeight: 600 }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.96 }}
-              transition={{
-                duration: 0.2,
-                type: "spring",
-                stiffness: 350,
-                damping: 35,
-              }}
-            >
-              Schedule a Consultation
-            </motion.a>
-            <motion.button
-              className="inline-flex items-center justify-center gap-2 bg-white border-2 border-[#059669] text-[#059669] hover:bg-gray-50 px-8 py-4 rounded-lg transition-colors duration-300"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.96 }}
-              transition={{
-                duration: 0.2,
-                type: "spring",
-                stiffness: 350,
-                damping: 35,
-              }}
-            >
-              <FileText className="w-5 h-5" />
-              <span style={{ fontWeight: 600 }}>Download Investment Guide</span>
-            </motion.button>
-          </div>
-        </FadeIn>
       </section>
     </div>
   );

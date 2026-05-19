@@ -31,6 +31,10 @@ export interface Property {
   province: string;
   category: "agro-industrial" | "industrial" | "light-manufacturing";
   peazaDeclarationDate: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
 }
 
 export interface Facility {
@@ -147,6 +151,10 @@ export const propertiesData: Property[] = [
     province: "South Cotabato",
     category: "agro-industrial",
     peazaDeclarationDate: "April 29, 2002",
+    coordinates: {
+      lat: 6.2238,
+      lng: 125.0682,
+    },
   },
   {
     id: "allah-valley",
@@ -159,6 +167,10 @@ export const propertiesData: Property[] = [
     province: "South Cotabato",
     category: "agro-industrial",
     peazaDeclarationDate: "December 12, 2008",
+    coordinates: {
+      lat: 6.3725,
+      lng: 124.7397,
+    },
   },
   {
     id: "calumpang",
@@ -171,6 +183,10 @@ export const propertiesData: Property[] = [
     province: "South Cotabato",
     category: "industrial",
     peazaDeclarationDate: "December 8, 2003",
+    coordinates: {
+      lat: 6.0961,
+      lng: 125.1328,
+    },
   },
   {
     id: "upper-klinan",
@@ -183,6 +199,10 @@ export const propertiesData: Property[] = [
     province: "South Cotabato",
     category: "light-manufacturing",
     peazaDeclarationDate: "October 20, 2020",
+    coordinates: {
+      lat: 6.2272,
+      lng: 125.0744,
+    },
   },
 ];
 

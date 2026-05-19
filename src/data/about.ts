@@ -34,44 +34,33 @@ export const milestonesSection = {
 
 export const milestones = [
   {
-    year: "1995",
-    title: "SRC Establishment",
+    year: "1977",
+    title: "Official Founding",
     description:
-      "Sarangani Resources Corporation was founded to develop industrial real estate in SOCCSKSARGEN",
+      "Sarangani Resources Corporation officially established as an agro-industrial pioneer, marking the beginning of transformative economic development in the SOCCSKSARGEN region.",
   },
   {
-    year: "1998",
-    title: "First PEZA Declaration",
+    year: "2002",
+    title: "PEZA Declaration - Cannery Zone",
     description:
-      "SRC Cannery Site in Polomolok officially declared as a Special Economic Zone by PEZA",
+      "Official PEZA Declaration for Sarangani Economic Development Zone (Cannery, Polomolok). This designation unlocks premium tax incentives and international trade facilitation for agro-industrial operations.",
   },
   {
     year: "2003",
-    title: "Calumpang Expansion",
-    description: "Launch of SRC Calumpang Economic Zone in General Santos City",
+    title: "PEZA Declaration - Calumpang Zone",
+    description:
+      "Official PEZA Declaration for SRC Calumpang. Strategic expansion into packaging and light manufacturing sectors near the Makar Wharf and General Santos International Airport.",
   },
   {
-    year: "2010",
-    title: "Major Infrastructure Upgrade",
+    year: "2008",
+    title: "PEZA Declaration - Allah Valley Zone",
     description:
-      "Completed modernization of utilities and security systems across all zones",
-  },
-  {
-    year: "2015",
-    title: "Allah Valley Development",
-    description:
-      "Began development of Allah Valley Economic Zone focusing on agro-industrial businesses",
+      "Official PEZA Declaration for SRC Allah Valley. Integration of the region's agricultural heartland into the PEZA framework for high-volume agro-processing and milling operations.",
   },
   {
     year: "2020",
-    title: "Upper Klinan Launch",
+    title: "PEZA Declaration - Upper Klinan Zone",
     description:
-      "Opened Upper Klinan Industrial Park with state-of-the-art facilities",
-  },
-  {
-    year: "2025",
-    title: "Sustainability Initiative",
-    description:
-      "Launched green energy and sustainable development programs across all properties",
+      "Official PEZA Declaration for SRC Upper Klinan. Latest zone designation for light to medium manufacturing, warehousing, and logistics expansion with reinforced road networks.",
   },
 ] as const;

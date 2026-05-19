@@ -12,9 +12,7 @@ import {
 } from "@/components/animations/index";
 import { images } from "@/constants/images";
 import {
-  homeFeaturedSection,
   homeHero,
-  homePartnersSection,
   homeStats,
 } from "@/data/statistics";
 import { SectionSkeleton } from "@/components/ui/SectionSkeleton";
@@ -38,6 +36,27 @@ const PartnersSection = lazy(() =>
 const CTASection = lazy(() =>
   import("@/components/sections/CTASection").then((m) => ({
     default: m.CTASection,
+  })),
+);
+
+/**
+ * Corporate data sections - displaying finalized SRC data
+ */
+const StatsBanner = lazy(() =>
+  import("@/components/sections/StatsBanner").then((m) => ({
+    default: m.StatsBanner,
+  })),
+);
+
+const PropertyGrid = lazy(() =>
+  import("@/components/sections/PropertyGrid").then((m) => ({
+    default: m.PropertyGrid,
+  })),
+);
+
+const Infrastructure = lazy(() =>
+  import("@/components/sections/Infrastructure").then((m) => ({
+    default: m.Infrastructure,
   })),
 );
 
@@ -167,6 +186,21 @@ export function Home() {
           </StaggerContainer>
         </div>
       </section>
+
+      {/* COMPANY STATS BANNER - Lazy-loaded with Suspense */}
+      <Suspense fallback={<SectionSkeleton variant="grid" itemCount={3} />}>
+        <StatsBanner />
+      </Suspense>
+
+      {/* PROPERTY GRID - Lazy-loaded with Suspense */}
+      <Suspense fallback={<SectionSkeleton variant="grid" itemCount={4} />}>
+        <PropertyGrid />
+      </Suspense>
+
+      {/* INFRASTRUCTURE - Lazy-loaded with Suspense */}
+      <Suspense fallback={<SectionSkeleton variant="grid" itemCount={4} />}>
+        <Infrastructure />
+      </Suspense>
 
       {/* FEATURED ZONES - Lazy-loaded with Suspense */}
       <Suspense fallback={<SectionSkeleton variant="grid" itemCount={4} />}>

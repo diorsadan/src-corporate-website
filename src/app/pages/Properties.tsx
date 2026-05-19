@@ -28,6 +28,7 @@ import {
   type InfrastructureIcon,
   type PropertyStatIcon,
 } from "@/data/properties";
+import { ZoneLocationsMap } from "@/components/sections/ZoneLocationsMap";
 
 const statIconMap: Record<PropertyStatIcon, typeof Factory> = {
   factory: Factory,
@@ -332,6 +333,27 @@ export function Properties() {
               </StaggerItem>
             ))}
           </StaggerContainer>
+        </div>
+      </section>
+
+      {/* Zone Locations Interactive Map */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <FadeIn className="text-center mb-12">
+            <h2
+              className="text-4xl mb-4 text-gray-900"
+              style={{ fontWeight: 700 }}
+            >
+              Zone Locations
+            </h2>
+            <p className="text-xl text-gray-600">
+              Strategic industrial zones across SOCCSKSARGEN
+            </p>
+          </FadeIn>
+
+          <FadeIn>
+            <ZoneLocationsMap />
+          </FadeIn>
         </div>
       </section>
     </div>
