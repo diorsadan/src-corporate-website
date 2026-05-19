@@ -1,9 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { ASSET_PLACEHOLDER } from '@/constants/images';
+import React, { useEffect, useState } from "react";
+import { ASSET_PLACEHOLDER } from "@/constants/images";
 
 type ImageWithFallbackProps = React.ImgHTMLAttributes<HTMLImageElement>;
 
-export function ImageWithFallback(props: ImageWithFallbackProps) {
+/**
+ * Optimized ImageWithFallback component with React.memo
+ * Prevents unnecessary re-renders when parent updates
+ * Handles fallback images and loading states efficiently
+ */
+function ImageWithFallbackComponent(props: ImageWithFallbackProps) {
   const { src, alt, style, className, onLoad, onError, ...rest } = props;
   const [didError, setDidError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -28,7 +33,7 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
   if (didError) {
     return (
       <div
-        className={`flex items-center justify-center overflow-hidden bg-gradient-to-br from-gray-100 via-gray-50 to-gray-200 ${className ?? ''}`}
+        className={`flex items-center justify-center overflow-hidden bg-gradient-to-br from-gray-100 via-gray-50 to-gray-200 ${className ?? ""}`}
         style={style}
         role="img"
         aria-label={alt}
@@ -66,3 +71,19 @@ export function ImageWithFallback(props: ImageWithFallbackProps) {
     </span>
   );
 }
+
+/**
+ * Memoization with shallow comparison on src and alt
+ * These are the primary props that determine if image content changes
+ */
+export const ImageWithFallback = React.memo(
+  ImageWithFallbackComponent,
+  (prevProps, nextProps) => {
+    // Re-render if src, alt, or className changes
+    return (
+      prevProps.src === nextProps.src &&
+      prevProps.alt === nextProps.alt &&
+      prevProps.className === nextProps.className
+    );
+  },
+);

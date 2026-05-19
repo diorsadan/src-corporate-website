@@ -1,0 +1,45 @@
+# Robots.txt for Sarangani Resources Corporation
+# Allow all bots to crawl the entire website
+# Last Updated: 2024
+
+User-agent: *
+Allow: /
+Allow: /about
+Allow: /properties
+Allow: /leasing
+Allow: /resources
+Allow: /contact
+Disallow: /node_modules/
+Disallow: /.git/
+Disallow: /dist/
+Disallow: /*.map
+
+# Specific directives for major search engines
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Slurp
+Allow: /
+Crawl-delay: 1
+
+User-agent: DuckDuckBot
+Allow: /
+Crawl-delay: 1
+
+# Block bad bots
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+# Sitemap Location
+Sitemap: https://saranganiresources.com/sitemap.xml

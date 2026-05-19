@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MapPin,
@@ -11,6 +11,7 @@ import {
   Check,
   AlertCircle,
   Loader,
+  RotateCcw,
 } from "lucide-react";
 import { ImageWithFallback } from "@/components/common/ImageWithFallback";
 import {
@@ -27,6 +28,20 @@ import {
   inquiryTypeOptions,
   type ContactSidebarCard,
 } from "@/data/locations";
+import { useDebounce } from "@/hooks/useDebounce";
+import {
+  validateEmail,
+  validatePhone,
+  validateFormData,
+  hasFieldError,
+  getFieldError,
+  type ValidationError,
+} from "@/utils/formValidation";
+import {
+  submitFormWithRetry,
+  formatSubmissionError,
+  parseWeb3FormsError,
+} from "@/utils/formSubmit";
 
 function SidebarCard({ card }: { card: ContactSidebarCard }) {
   const isGradient = card.variant === "gradient";
@@ -106,51 +121,94 @@ export function Contact() {
     message: "",
   });
 
+  // Debounced values for real-time validation
+  const debouncedEmail = useDebounce(formData.email, 500);
+  const debouncedPhone = useDebounce(formData.contactNumber, 500);
+
+  // Validation state
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>(
+    [],
+  );
+
+  // Form submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [totalAttempts, setTotalAttempts] = useState(0);
+  const [showRetryButton, setShowRetryButton] = useState(false);
 
+  // Handle field-level debounced validation
+  useEffect(() => {
+    if (!formData.email) return;
+
+    const emailError = validateEmail(formData.email);
+    setValidationErrors((prev) => {
+      // Remove existing email error if any
+      const filtered = prev.filter((e) => e.field !== "email");
+      // Add new error if invalid
+      if (!emailError.isValid) {
+        return [...filtered, emailError];
+      }
+      return filtered;
+    });
+  }, [debouncedEmail]);
+
+  useEffect(() => {
+    if (!formData.contactNumber) return;
+
+    const phoneError = validatePhone(formData.contactNumber);
+    setValidationErrors((prev) => {
+      // Remove existing phone error if any
+      const filtered = prev.filter((e) => e.field !== "phone");
+      // Add new error if invalid
+      if (!phoneError.isValid) {
+        return [...filtered, phoneError];
+      }
+      return filtered;
+    });
+  }, [debouncedPhone]);
+
+  // Clear validation errors when field is focused/changed
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >,
   ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Clear error for this field when user starts typing
+    setValidationErrors((prev) => prev.filter((e) => e.field !== name));
+  };
+
+  // Retry submission
+  const handleRetry = async () => {
+    setShowError(false);
+    setShowRetryButton(false);
+    await handleSubmit(new Event("submit") as any);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate required fields
-    if (
-      !formData.fullName ||
-      !formData.companyName ||
-      !formData.email ||
-      !formData.contactNumber ||
-      !formData.inquiryType ||
-      !formData.message
-    ) {
-      setErrorMessage("Please fill in all required fields");
+    // Validate all fields first
+    const batchErrors = validateFormData(formData);
+    if (batchErrors.length > 0) {
+      setValidationErrors(batchErrors);
+      const errorMsg = batchErrors.map((e) => e.message).join(", ");
+      setErrorMessage(errorMsg);
       setShowError(true);
-      setTimeout(() => setShowError(false), 4000);
-      return;
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      setErrorMessage("Please enter a valid email address");
-      setShowError(true);
-      setTimeout(() => setShowError(false), 4000);
+      setTimeout(() => setShowError(false), 5000);
       return;
     }
 
     setIsSubmitting(true);
     setShowError(false);
+    setShowRetryButton(false);
 
     try {
       // Find the label for the selected inquiry type
@@ -162,7 +220,7 @@ export function Contact() {
       // Build comprehensive message combining all inquiry details
       const comprehensiveMessage = `Company: ${formData.companyName}\nPhone: ${formData.contactNumber}\nInquiry Type: ${inquiryTypeLabel}\n\nMessage:\n${formData.message}`;
 
-      // BULLETPROOF Web3Forms Payload Structure
+      // Web3Forms Payload
       const payload = {
         access_key: "3b03da7a-b129-438a-a1a4-1326b4aa6cd2",
         subject: "New SRC Website Inquiry",
@@ -177,24 +235,29 @@ export function Contact() {
         redirect: false,
       };
 
-      console.log("📤 Sending Web3Forms payload:", payload);
+      console.log("📤 Initiating form submission with retry logic...");
 
-      // Submit to Web3Forms API with STRICT headers
-      const response = await fetch("https://api.web3forms.com/submit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
+      // Submit with retry logic (max 3 attempts with exponential backoff)
+      const result = await submitFormWithRetry(
+        () =>
+          fetch("https://api.web3forms.com/submit", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify(payload),
+          }).then((res) => res.json()),
+        {
+          maxRetries: 3,
+          initialDelayMs: 1000,
+          backoffMultiplier: 2,
         },
-        body: JSON.stringify(payload),
-      });
+      );
 
-      // Parse response
-      const result = await response.json();
-      console.log("✅ Web3Forms Response:", result);
+      setTotalAttempts(result.totalAttempts);
 
-      // Check for success response
-      if (result.success === true || result.ok === true) {
+      if (result.success) {
         console.log("✨ Form submitted successfully!");
         setShowSuccess(true);
 
@@ -208,30 +271,33 @@ export function Contact() {
             inquiryType: "",
             message: "",
           });
-        }, 800);
+          setValidationErrors([]);
+        }, 500);
 
-        // Hide success message after 6 seconds
+        // Hide success message after EXACTLY 8 seconds
         setTimeout(() => {
           setShowSuccess(false);
-        }, 6000);
+        }, 8000);
       } else {
-        // Web3Forms returned an error response
-        const errorMsg =
-          result.message || "Failed to submit form. Please try again later.";
-        console.error("❌ Web3Forms Error:", errorMsg);
+        // All retries exhausted
+        const errorMsg = formatSubmissionError(
+          result.error || "Failed to submit form",
+          result.totalAttempts,
+        );
+        console.error("❌ Form submission failed:", errorMsg);
         setErrorMessage(errorMsg);
         setShowError(true);
-        setTimeout(() => setShowError(false), 4000);
+        setShowRetryButton(true);
       }
     } catch (error) {
-      console.error("🚨 Network/Parse Error:", error);
+      console.error("🚨 Unexpected error:", error);
       const errorMsg =
         error instanceof Error
           ? error.message
-          : "An error occurred while submitting the form.";
+          : "An unexpected error occurred while submitting the form.";
       setErrorMessage(errorMsg || "Please try again later.");
       setShowError(true);
-      setTimeout(() => setShowError(false), 4000);
+      setShowRetryButton(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -276,12 +342,43 @@ export function Contact() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
                             transition={{ duration: 0.3 }}
-                            className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-start gap-3"
+                            className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg"
                           >
-                            <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                            <div>
-                              <p style={{ fontWeight: 600 }}>Error</p>
-                              <p className="text-sm">{errorMessage}</p>
+                            <div className="flex items-start gap-3">
+                              <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                              <div className="flex-1">
+                                <p style={{ fontWeight: 600 }}>
+                                  {totalAttempts > 1
+                                    ? "Submission Failed"
+                                    : "Error"}
+                                </p>
+                                <p className="text-sm mt-1">{errorMessage}</p>
+                                {showRetryButton && (
+                                  <motion.button
+                                    onClick={handleRetry}
+                                    disabled={isSubmitting}
+                                    className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                                    whileHover={
+                                      !isSubmitting ? { scale: 1.05 } : {}
+                                    }
+                                    whileTap={
+                                      !isSubmitting ? { scale: 0.95 } : {}
+                                    }
+                                  >
+                                    {isSubmitting ? (
+                                      <>
+                                        <Loader className="w-4 h-4 animate-spin" />
+                                        Retrying...
+                                      </>
+                                    ) : (
+                                      <>
+                                        <RotateCcw className="w-4 h-4" />
+                                        Try Again
+                                      </>
+                                    )}
+                                  </motion.button>
+                                )}
+                              </div>
                             </div>
                           </motion.div>
                         )}
@@ -356,19 +453,39 @@ export function Contact() {
                               Email Address{" "}
                               <span className="text-red-500">*</span>
                             </label>
-                            <motion.input
-                              type="email"
-                              id="email"
-                              name="email"
-                              value={formData.email}
-                              onChange={handleChange}
-                              disabled={isSubmitting}
-                              required
-                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#059669] focus:border-transparent transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
-                              placeholder="you@company.com"
-                              whileHover={{ borderColor: "#059669" }}
-                              transition={{ duration: 0.2 }}
-                            />
+                            <div className="relative">
+                              <motion.input
+                                type="email"
+                                id="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                disabled={isSubmitting}
+                                required
+                                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed ${
+                                  hasFieldError(validationErrors, "email")
+                                    ? "border-red-500/50 bg-red-50/30"
+                                    : "border-gray-300"
+                                }`}
+                                placeholder="you@company.com"
+                                whileHover={
+                                  !hasFieldError(validationErrors, "email")
+                                    ? { borderColor: "#059669" }
+                                    : {}
+                                }
+                                transition={{ duration: 0.2 }}
+                              />
+                            </div>
+                            {hasFieldError(validationErrors, "email") && (
+                              <motion.p
+                                initial={{ opacity: 0, y: -5 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.2 }}
+                                className="mt-2 text-sm text-red-600"
+                              >
+                                {getFieldError(validationErrors, "email")}
+                              </motion.p>
+                            )}
                           </motion.div>
 
                           <motion.div
@@ -383,19 +500,39 @@ export function Contact() {
                               Contact Number{" "}
                               <span className="text-red-500">*</span>
                             </label>
-                            <motion.input
-                              type="tel"
-                              id="contactNumber"
-                              name="contactNumber"
-                              value={formData.contactNumber}
-                              onChange={handleChange}
-                              disabled={isSubmitting}
-                              required
-                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#059669] focus:border-transparent transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed"
-                              placeholder="+63 912 345 6789"
-                              whileHover={{ borderColor: "#059669" }}
-                              transition={{ duration: 0.2 }}
-                            />
+                            <div className="relative">
+                              <motion.input
+                                type="tel"
+                                id="contactNumber"
+                                name="contactNumber"
+                                value={formData.contactNumber}
+                                onChange={handleChange}
+                                disabled={isSubmitting}
+                                required
+                                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200 disabled:bg-gray-100 disabled:cursor-not-allowed ${
+                                  hasFieldError(validationErrors, "phone")
+                                    ? "border-red-500/50 bg-red-50/30"
+                                    : "border-gray-300"
+                                }`}
+                                placeholder="+63 912 345 6789"
+                                whileHover={
+                                  !hasFieldError(validationErrors, "phone")
+                                    ? { borderColor: "#059669" }
+                                    : {}
+                                }
+                                transition={{ duration: 0.2 }}
+                              />
+                            </div>
+                            {hasFieldError(validationErrors, "phone") && (
+                              <motion.p
+                                initial={{ opacity: 0, y: -5 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.2 }}
+                                className="mt-2 text-sm text-red-600"
+                              >
+                                {getFieldError(validationErrors, "phone")}
+                              </motion.p>
+                            )}
                           </motion.div>
                         </div>
 
@@ -493,7 +630,7 @@ export function Contact() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.4 }}
+                      transition={{ duration: 0.5 }}
                       className="text-center py-12"
                     >
                       <motion.div
@@ -509,7 +646,7 @@ export function Contact() {
                       >
                         <div className="relative">
                           <motion.div
-                            className="w-20 h-20 bg-[#059669] rounded-full flex items-center justify-center"
+                            className="w-20 h-20 bg-primary rounded-full flex items-center justify-center"
                             animate={{ scale: [1, 1.1, 1] }}
                             transition={{
                               delay: 0.4,
@@ -523,8 +660,7 @@ export function Contact() {
                       </motion.div>
 
                       <motion.h3
-                        className="text-3xl mb-4 text-gray-900"
-                        style={{ fontWeight: 700 }}
+                        className="text-3xl mb-4 text-gray-900 font-bold"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}

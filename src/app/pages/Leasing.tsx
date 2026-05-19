@@ -4,7 +4,6 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Building2,
-  Download,
   FileText,
   ClipboardList,
   MapPin,
@@ -20,7 +19,6 @@ import {
 } from "@/components/animations/index";
 import {
   leasingCtaSection,
-  leasingDownloadSection,
   leasingFilterCategories,
   leasingListings,
   leasingListingsSection,
@@ -228,56 +226,6 @@ export function Leasing() {
             })}
           </StaggerContainer>
         </div>
-      </section>
-
-      <section className="py-20 bg-gradient-to-br from-[#059669] to-[#047857]">
-        <FadeIn className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full mb-6">
-            <Download className="w-10 h-10 text-white" />
-          </div>
-          <h2 className="text-4xl mb-4 text-white" style={{ fontWeight: 700 }}>
-            {leasingDownloadSection.title}
-          </h2>
-          <p className="text-xl text-gray-100 mb-8">
-            {leasingDownloadSection.body}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <motion.button
-              type="button"
-              className="inline-flex items-center justify-center gap-3 bg-white text-[#059669] px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors duration-300 shadow-lg"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.96 }}
-              transition={{
-                duration: 0.2,
-                type: "spring",
-                stiffness: 350,
-                damping: 35,
-              }}
-            >
-              <Download className="w-5 h-5" />
-              <span style={{ fontWeight: 600 }}>
-                {leasingDownloadSection.brochureLabel}
-              </span>
-            </motion.button>
-            <motion.button
-              type="button"
-              className="inline-flex items-center justify-center gap-3 bg-[#84cc16] text-white px-8 py-4 rounded-lg hover:bg-[#65a30d] transition-colors duration-300 shadow-lg"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.96 }}
-              transition={{
-                duration: 0.2,
-                type: "spring",
-                stiffness: 350,
-                damping: 35,
-              }}
-            >
-              <FileText className="w-5 h-5" />
-              <span style={{ fontWeight: 600 }}>
-                {leasingDownloadSection.rateSheetLabel}
-              </span>
-            </motion.button>
-          </div>
-        </FadeIn>
       </section>
 
       <section className="py-16 bg-white">

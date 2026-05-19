@@ -2,19 +2,47 @@
 
 import { motion } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router";
+import { useRef, useEffect } from "react";
 import { Logo } from "./Logo";
 import { primaryNav } from "@/data/navigation";
 
+/**
+ * Optimized Header component with proper memory leak prevention
+ * Uses useRef to track setTimeout and cleanup in useEffect
+ */
 export function Header() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Track timeout ID to prevent memory leaks
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /**
+   * Cleanup function: clears pending timeout when component unmounts
+   * Prevents memory leaks from rapid navigation or component unmount
+   */
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, []);
+
   /**
    * Smooth scroll to top, then navigate to new page
    * Provides elegant page transition experience
+   * Uses ref-tracked timeout to prevent unmount errors
    */
   const handleNavigation = (href: string) => (e: React.MouseEvent) => {
     e.preventDefault();
+
+    // Clear any pending timeout first (in case of rapid clicks)
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
 
     // If already on the target page, just scroll to top
     if (location.pathname === href) {
@@ -26,8 +54,10 @@ export function Header() {
     window.scrollTo({ top: 0, behavior: "smooth" });
 
     // Wait for scroll to complete, then navigate
-    setTimeout(() => {
+    // Tracked in ref so cleanup can clear it if component unmounts
+    timeoutRef.current = setTimeout(() => {
       navigate(href);
+      timeoutRef.current = null;
     }, 350);
   };
 

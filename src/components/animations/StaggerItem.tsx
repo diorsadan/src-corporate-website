@@ -1,13 +1,19 @@
 "use client";
 
 import type { PropsWithChildren } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 
 type StaggerItemProps = PropsWithChildren<{
   className?: string;
 }>;
 
-export function StaggerItem({ children, className }: StaggerItemProps) {
+/**
+ * Optimized StaggerItem component with React.memo
+ * Prevents unnecessary re-renders in stagger containers
+ * Custom comparison: only re-render if children or className changes
+ */
+function StaggerItemComponent({ children, className }: StaggerItemProps) {
   return (
     <motion.div
       className={className}
@@ -24,3 +30,14 @@ export function StaggerItem({ children, className }: StaggerItemProps) {
     </motion.div>
   );
 }
+
+export const StaggerItem = React.memo(
+  StaggerItemComponent,
+  (prevProps, nextProps) => {
+    // Re-render only if children reference or className changes
+    return (
+      prevProps.children === nextProps.children &&
+      prevProps.className === nextProps.className
+    );
+  },
+);
