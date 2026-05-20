@@ -1,23 +1,13 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  X,
-  Send,
-  Loader,
-  Check,
-  AlertCircle,
-  RotateCcw,
-} from "lucide-react";
+import { X, Send, Loader, Check, AlertCircle, RotateCcw } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
   validateEmail,
   validateFormData,
   type ValidationError,
 } from "@/utils/formValidation";
-import {
-  submitFormWithRetry,
-  formatSubmissionError,
-} from "@/utils/formSubmit";
+import { submitFormWithRetry, formatSubmissionError } from "@/utils/formSubmit";
 import { FADE_IN_UP } from "@/constants/animations";
 
 interface ConsultationFormProps {

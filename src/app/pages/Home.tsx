@@ -11,10 +11,7 @@ import {
   StaggerItem,
 } from "@/components/animations/index";
 import { images } from "@/constants/images";
-import {
-  homeHero,
-  homeStats,
-} from "@/data/statistics";
+import { homeHero, homeStats } from "@/data/statistics";
 import { SectionSkeleton } from "@/components/ui/SectionSkeleton";
 
 /**

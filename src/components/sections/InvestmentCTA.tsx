@@ -30,10 +30,7 @@ export const InvestmentCTA: React.FC = () => {
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left Column - Content */}
-            <motion.div
-              variants={FADE_IN_UP}
-              className="space-y-8"
-            >
+            <motion.div variants={FADE_IN_UP} className="space-y-8">
               {/* Icon Badge */}
               <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center">
                 <TrendingUp className="w-8 h-8 text-primary" />
@@ -45,9 +42,9 @@ export const InvestmentCTA: React.FC = () => {
                   Strategic Investment Opportunities in SOCCSKSARGEN
                 </h2>
                 <p className="text-xl text-gray-600 leading-relaxed">
-                  Sarangani Resources Corporation's four PEZA-registered economic
-                  zones offer premium investment platforms for agro-industrial,
-                  manufacturing, and logistics operations.
+                  Sarangani Resources Corporation's four PEZA-registered
+                  economic zones offer premium investment platforms for
+                  agro-industrial, manufacturing, and logistics operations.
                 </p>
               </div>
 
@@ -104,10 +101,7 @@ export const InvestmentCTA: React.FC = () => {
             </motion.div>
 
             {/* Right Column - Visual Element */}
-            <motion.div
-              variants={FADE_IN_UP}
-              className="relative"
-            >
+            <motion.div variants={FADE_IN_UP} className="relative">
               {/* Gradient Background Card */}
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl transform rotate-3" />

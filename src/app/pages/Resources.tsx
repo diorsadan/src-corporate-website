@@ -38,8 +38,8 @@ function InvestorCarousel() {
       clearInterval(intervalRef.current);
     }
     intervalRef.current = window.setInterval(() => {
-      setActiveIndex((currentIndex) =>
-        (currentIndex + 1) % carouselImagePaths.length,
+      setActiveIndex(
+        (currentIndex) => (currentIndex + 1) % carouselImagePaths.length,
       );
     }, 3000);
   };
@@ -54,16 +54,17 @@ function InvestorCarousel() {
   }, []);
 
   const handleNext = () => {
-    setActiveIndex((currentIndex) =>
-      (currentIndex + 1) % carouselImagePaths.length,
+    setActiveIndex(
+      (currentIndex) => (currentIndex + 1) % carouselImagePaths.length,
     );
     startAutoPlay();
   };
 
   const handlePrevious = () => {
-    setActiveIndex((currentIndex) =>
-      (currentIndex - 1 + carouselImagePaths.length) %
-      carouselImagePaths.length,
+    setActiveIndex(
+      (currentIndex) =>
+        (currentIndex - 1 + carouselImagePaths.length) %
+        carouselImagePaths.length,
     );
     startAutoPlay();
   };

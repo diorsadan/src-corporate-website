@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Download, ArrowRight } from "lucide-react";
-import { FADE_IN_UP, STAGGER_CONTAINER, STAGGER_ITEM } from "@/constants/animations";
+import {
+  FADE_IN_UP,
+  STAGGER_CONTAINER,
+  STAGGER_ITEM,
+} from "@/constants/animations";
 import { ConsultationForm } from "@/components/sections/ConsultationForm";
 
 /**
@@ -41,10 +45,7 @@ export const AdditionalBenefitsBanner: React.FC = () => {
       >
         <div className="max-w-7xl mx-auto px-6">
           {/* Header */}
-          <motion.div
-            variants={FADE_IN_UP}
-            className="text-center mb-16"
-          >
+          <motion.div variants={FADE_IN_UP} className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-4">
               Additional PEZA Benefits
             </h2>
@@ -86,7 +87,8 @@ export const AdditionalBenefitsBanner: React.FC = () => {
             </h3>
             <p className="text-lg text-white/90 max-w-2xl mx-auto mb-8">
               Download our comprehensive PEZA guidelines or schedule a
-              consultation with our team to discuss your specific business needs.
+              consultation with our team to discuss your specific business
+              needs.
             </p>
 
             {/* Button Group */}

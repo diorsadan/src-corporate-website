@@ -58,7 +58,46 @@ export function Properties() {
         </div>
       </section>
 
+      {/* Zone Locations Interactive Map - Premium Positioning */}
+      <section className="py-24 bg-gradient-to-b from-white to-gray-50 border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            viewport={{ once: true, amount: 0.2 }}
+            className="text-center mb-16"
+          >
+            <div className="inline-block mb-4">
+              <div className="px-4 py-2 rounded-full bg-[#059669]/10 border border-[#059669]/20">
+                <span className="text-sm font-semibold text-[#059669]">
+                  Strategic Locations
+                </span>
+              </div>
+            </div>
+            <h2
+              className="text-5xl mb-6 text-gray-900 leading-tight"
+              style={{ fontWeight: 700 }}
+            >
+              Zone Locations
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Strategic industrial zones across SOCCSKSARGEN region, optimally
+              positioned for regional commerce and trade
+            </p>
+          </motion.div>
 
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+            viewport={{ once: true, amount: 0.2 }}
+            className="rounded-2xl shadow-xl overflow-hidden border border-gray-200"
+          >
+            <ZoneLocationsMap />
+          </motion.div>
+        </div>
+      </section>
 
       {propertySplitZones.map((zone, zoneIndex) => (
         <section key={zone.id} className={`py-16 ${zone.sectionClass}`}>
@@ -288,38 +327,6 @@ export function Properties() {
               </StaggerItem>
             ))}
           </StaggerContainer>
-        </div>
-      </section>
-
-      {/* Zone Locations Interactive Map - Relocated to Bottom */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            viewport={{ once: true, amount: 0.2 }}
-            className="text-center mb-12"
-          >
-            <h2
-              className="text-4xl mb-4 text-gray-900"
-              style={{ fontWeight: 700 }}
-            >
-              Zone Locations
-            </h2>
-            <p className="text-xl text-gray-600">
-              Strategic industrial zones across SOCCSKSARGEN
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
-            viewport={{ once: true, amount: 0.2 }}
-          >
-            <ZoneLocationsMap />
-          </motion.div>
         </div>
       </section>
     </div>
