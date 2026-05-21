@@ -178,7 +178,8 @@ export const PropertyGrid: React.FC = () => {
                   heightClass="h-64"
                   isolateControls
                   parentGroupName="card"
-                  advanceOnHover
+                  autoPlay
+                  resetToFirstWhenIdle
                   isHovered={hoveredCardId === property.id}
                   autoPlayIntervalMs={2800}
                 />

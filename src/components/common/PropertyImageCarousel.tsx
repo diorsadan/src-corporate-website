@@ -93,6 +93,8 @@ export interface PropertyImageCarouselProps {
   isHovered?: boolean;
   /** Always auto-advance (modal showcase) */
   autoPlay?: boolean;
+  /** Auto-advance only while hovered; snap back to first image when idle (grid cards) */
+  resetToFirstWhenIdle?: boolean;
   autoPlayIntervalMs?: number;
 }
 
@@ -108,6 +110,7 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
   advanceOnHover = false,
   isHovered = false,
   autoPlay = false,
+  resetToFirstWhenIdle = false,
   autoPlayIntervalMs = 2800,
 }) => {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -120,9 +123,12 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
   const groupHover =
     parentGroupName === "card" ? "group-hover/card" : "group-hover";
 
+  const isEngaged = isHovered || pointerOver;
+
   const shouldAutoPlay =
     images.length > 1 &&
-    (autoPlay || (advanceOnHover && (isHovered || pointerOver)));
+    ((autoPlay && (!resetToFirstWhenIdle || isEngaged)) ||
+      (advanceOnHover && isEngaged));
 
   const clearAutoPlay = useCallback(() => {
     if (firstTickRef.current) {
@@ -144,6 +150,12 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
   useEffect(() => {
     setActiveIndex(0);
   }, [images]);
+
+  useEffect(() => {
+    if (resetToFirstWhenIdle && !isEngaged) {
+      setActiveIndex(0);
+    }
+  }, [resetToFirstWhenIdle, isEngaged]);
 
   useEffect(() => {
     clearAutoPlay();
@@ -201,8 +213,12 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
   return (
     <div
       className={`w-full ${heightClass} overflow-hidden bg-slate-900 relative`}
-      onPointerEnter={() => advanceOnHover && setPointerOver(true)}
-      onPointerLeave={() => advanceOnHover && setPointerOver(false)}
+      onPointerEnter={() =>
+        (advanceOnHover || resetToFirstWhenIdle) && setPointerOver(true)
+      }
+      onPointerLeave={() =>
+        (advanceOnHover || resetToFirstWhenIdle) && setPointerOver(false)
+      }
     >
       {/* Layered crossfade — reliable visible transitions for auto-advance */}
       <div className="absolute inset-0 overflow-hidden">

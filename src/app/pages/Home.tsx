@@ -4,13 +4,11 @@ import { lazy, Suspense } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, TrendingUp, Users, Calendar } from "lucide-react";
 import { Link } from "react-router";
-import { ImageWithFallback } from "@/components/common/ImageWithFallback";
 import {
   FadeIn,
   StaggerContainer,
   StaggerItem,
 } from "@/components/animations/index";
-import { images } from "@/constants/images";
 import { homeHero, homeStats } from "@/data/statistics";
 import { SectionSkeleton } from "@/components/ui/SectionSkeleton";
 
@@ -70,21 +68,27 @@ const statIcons = {
  * 1. Above-fold sections (hero, stats) load immediately
  * 2. Below-fold sections (featured zones, partners, CTA) lazy-loaded
  * 3. React.Suspense with SectionSkeleton provides smooth UX
- * 4. ImageWithFallback and animation components memoized
+ * 4. Hero uses hardware-accelerated video background with gradient overlay
  */
 export function Home() {
   return (
     <div className="w-full">
       {/* HERO SECTION - Elevated & Premium */}
       <section className="relative min-h-screen lg:h-screen flex items-center justify-center overflow-hidden pt-20 lg:pt-0">
-        {/* Background Image with Dark Overlay */}
-        <div className="absolute inset-0 z-0">
-          <ImageWithFallback
-            src={images.home.hero}
-            alt="Sarangani Resources Corporation - Economic Zones"
-            className="h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/50" />
+        <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            className="w-full h-full object-cover"
+          >
+            <source src="/images/homevideo.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-950/60 via-slate-950/40 to-slate-950/70 z-10" />
         </div>
 
         {/* Hero Content - Elegant Fade-In Animation */}
