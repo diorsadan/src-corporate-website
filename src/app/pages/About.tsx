@@ -1,22 +1,87 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { Target, Eye } from "lucide-react";
-import { ImageWithFallback } from "@/components/common/ImageWithFallback";
 import {
   FadeIn,
   StaggerContainer,
   StaggerItem,
 } from "@/components/animations/index";
-import { images } from "@/constants/images";
 import {
   aboutPageHero,
   companyProfile,
-  leadershipSection,
   milestones,
   milestonesSection,
   visionMission,
 } from "@/data/about";
-import { teamMembers } from "@/data/team";
+import {
+  TEAM_PROFILE_PHOTO,
+  TEAM_GROUP_PHOTO,
+  TEAM_PHOTO_FALLBACK,
+} from "@/data/team";
+import { TeamSection } from "@/components/sections/TeamSection";
+
+function CompanyProfilePhoto() {
+  const [src, setSrc] = useState(TEAM_PROFILE_PHOTO);
+
+  useEffect(() => {
+    setSrc(TEAM_PROFILE_PHOTO);
+  }, []);
+
+  return (
+    <img
+      src={src}
+      alt="Sarangani Resources Corporation leadership and staff"
+      className="w-full h-full object-cover rounded-2xl shadow-sm min-h-[280px] lg:min-h-[360px]"
+      loading="lazy"
+      decoding="async"
+      onError={() => {
+        if (src !== TEAM_PHOTO_FALLBACK) {
+          setSrc(TEAM_PHOTO_FALLBACK);
+        }
+      }}
+    />
+  );
+}
+
+function TeamGroupPortraitBanner() {
+  const [src, setSrc] = useState(TEAM_GROUP_PHOTO);
+
+  useEffect(() => {
+    setSrc(TEAM_GROUP_PHOTO);
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.55, ease: "easeOut" }}
+      className="relative w-full h-[350px] md:h-[450px] rounded-3xl overflow-hidden shadow-lg border border-slate-100 my-12"
+    >
+      <img
+        src={src}
+        alt="Sarangani Resources Corporation Group Portfolio"
+        className="w-full h-full object-cover object-center"
+        loading="lazy"
+        decoding="async"
+        onError={() => {
+          if (src !== TEAM_PHOTO_FALLBACK) {
+            setSrc(TEAM_PHOTO_FALLBACK);
+          }
+        }}
+      />
+      <div className="absolute bottom-4 left-6 z-20 text-white font-medium text-sm drop-shadow-sm">
+        Sarangani Resources Corporation — Our Team
+      </div>
+      <div
+        className="absolute inset-0 bg-gradient-to-t from-slate-950/30 via-transparent to-transparent pointer-events-none"
+        aria-hidden
+      />
+    </motion.div>
+  );
+}
 
 export function About() {
   return (
@@ -32,7 +97,7 @@ export function About() {
 
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-stretch">
             <FadeIn className="space-y-4">
               <h2
                 className="text-3xl mb-6 text-gray-900"
@@ -49,13 +114,9 @@ export function About() {
                 </p>
               ))}
             </FadeIn>
-            <FadeIn delay={0.15}>
-              <div className="rounded-lg overflow-hidden shadow-xl">
-                <ImageWithFallback
-                  src={images.about.company}
-                  alt="Corporate office building"
-                  className="h-full w-full object-cover"
-                />
+            <FadeIn delay={0.15} className="h-full">
+              <div className="h-full w-full overflow-hidden">
+                <CompanyProfilePhoto />
               </div>
             </FadeIn>
           </div>
@@ -103,49 +164,14 @@ export function About() {
               </div>
             </StaggerItem>
           </StaggerContainer>
+
+          <TeamGroupPortraitBanner />
         </div>
       </section>
 
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <FadeIn className="text-center mb-12">
-            <h2
-              className="text-4xl mb-4 text-gray-900"
-              style={{ fontWeight: 700 }}
-            >
-              {leadershipSection.title}
-            </h2>
-            <p className="text-xl text-gray-600">
-              {leadershipSection.subtitle}
-            </p>
-          </FadeIn>
+      <TeamSection />
 
-          <StaggerContainer className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {teamMembers.map((member, index) => (
-              <StaggerItem key={index} className="text-center group">
-                <div className="mb-4 overflow-hidden rounded-lg shadow-lg">
-                  <ImageWithFallback
-                    src={member.image}
-                    alt={member.name}
-                    className="h-80 w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                </div>
-                <h3
-                  className="text-xl mb-1 text-gray-900"
-                  style={{ fontWeight: 600 }}
-                >
-                  {member.name}
-                </h3>
-                <p className="text-[#059669]" style={{ fontWeight: 500 }}>
-                  {member.position}
-                </p>
-              </StaggerItem>
-            ))}
-          </StaggerContainer>
-        </div>
-      </section>
-
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-gray-50 border-t border-slate-100">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <FadeIn className="text-center mb-16">
             <h2

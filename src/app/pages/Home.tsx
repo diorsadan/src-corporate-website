@@ -1,79 +1,40 @@
 "use client";
 
-import { lazy, Suspense } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, TrendingUp, Users, Calendar } from "lucide-react";
+import { ArrowRight, Shield, Leaf, Landmark } from "lucide-react";
 import { Link } from "react-router";
-import {
-  FadeIn,
-  StaggerContainer,
-  StaggerItem,
-} from "@/components/animations/index";
-import { homeHero, homeStats } from "@/data/statistics";
-import { SectionSkeleton } from "@/components/ui/SectionSkeleton";
+import { FadeIn } from "@/components/animations/index";
+import { homeHero } from "@/data/statistics";
+import { companyProfile } from "@/data/about";
+
+const PROPERTIES_PATH = "/properties" as const;
+
+const trustValues = [
+  {
+    icon: Landmark,
+    label: "SOCCSKSARGEN Stewardship",
+    detail: "Rooted in regional partnership and long-term economic uplift.",
+  },
+  {
+    icon: Shield,
+    label: "PEZA-Registered Excellence",
+    detail: "World-class zone development with accountable governance.",
+  },
+  {
+    icon: Leaf,
+    label: "Sustainable Progress",
+    detail: "Balancing enterprise growth with community well-being.",
+  },
+] as const;
 
 /**
- * Lazy-loaded sections - code-split for better initial page load
- * These heavy sections are loaded only when needed (below fold)
- */
-const FeaturedZonesSection = lazy(() =>
-  import("@/components/sections/FeaturedZonesSection").then((m) => ({
-    default: m.FeaturedZonesSection,
-  })),
-);
-
-const PartnersSection = lazy(() =>
-  import("@/components/sections/PartnersSection").then((m) => ({
-    default: m.PartnersSection,
-  })),
-);
-
-const CTASection = lazy(() =>
-  import("@/components/sections/CTASection").then((m) => ({
-    default: m.CTASection,
-  })),
-);
-
-/**
- * Corporate data sections - displaying finalized SRC data
- */
-const StatsBanner = lazy(() =>
-  import("@/components/sections/StatsBanner").then((m) => ({
-    default: m.StatsBanner,
-  })),
-);
-
-const PropertyGrid = lazy(() =>
-  import("@/components/sections/PropertyGrid").then((m) => ({
-    default: m.PropertyGrid,
-  })),
-);
-
-const Infrastructure = lazy(() =>
-  import("@/components/sections/Infrastructure").then((m) => ({
-    default: m.Infrastructure,
-  })),
-);
-
-const statIcons = {
-  trending: TrendingUp,
-  users: Users,
-  calendar: Calendar,
-} as const;
-
-/**
- * Home Page - Performance optimized with lazy loading
- *
- * Optimization techniques:
- * 1. Above-fold sections (hero, stats) load immediately
- * 2. Below-fold sections (featured zones, partners, CTA) lazy-loaded
- * 3. React.Suspense with SectionSkeleton provides smooth UX
- * 4. Hero uses hardware-accelerated video background with gradient overlay
+ * Home Page — brand introduction only.
+ * Property inventory lives exclusively on /properties.
  */
 export function Home() {
   return (
     <div className="w-full">
-      {/* HERO SECTION - Elevated & Premium */}
+      {/* HERO */}
       <section className="relative min-h-screen lg:h-screen flex items-center justify-center overflow-hidden pt-20 lg:pt-0">
         <div className="absolute inset-0 w-full h-full overflow-hidden z-0">
           <video
@@ -91,9 +52,7 @@ export function Home() {
           <div className="absolute inset-0 bg-gradient-to-b from-slate-950/60 via-slate-950/40 to-slate-950/70 z-10" />
         </div>
 
-        {/* Hero Content - Elegant Fade-In Animation */}
-        <FadeIn className="relative z-10 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 text-center py-16 lg:py-0">
-          {/* Headline - Premium Typography */}
+        <FadeIn className="relative z-20 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 text-center py-16 lg:py-0">
           <div className="mb-8 lg:mb-10 space-y-3 lg:space-y-4">
             <h1
               className="text-4xl sm:text-5xl lg:text-7xl text-white leading-tight tracking-tight"
@@ -109,12 +68,10 @@ export function Home() {
             </h2>
           </div>
 
-          {/* Subtitle - Elegant Supporting Text */}
           <p className="text-base sm:text-lg lg:text-xl text-gray-100 max-w-3xl mx-auto mb-10 lg:mb-12 leading-relaxed font-light tracking-wide">
             {homeHero.subtitle}
           </p>
 
-          {/* CTA Button - Sleek & Premium */}
           <motion.div
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.96 }}
@@ -126,17 +83,16 @@ export function Home() {
             }}
           >
             <Link
-              to={homeHero.ctaPath}
+              to={PROPERTIES_PATH}
               className="inline-flex items-center gap-3 bg-[#059669] hover:bg-[#047857] text-white px-8 sm:px-10 py-3 lg:py-4 rounded-lg transition-all duration-500 shadow-lg hover:shadow-2xl hover:-translate-y-1 border border-emerald-500/30 font-semibold text-base lg:text-lg whitespace-nowrap"
             >
-              {homeHero.ctaLabel}
-              <ArrowRight className="w-5 h-5 transition-transform" />
+              Explore Our Properties
+              <ArrowRight className="w-5 h-5" />
             </Link>
           </motion.div>
         </FadeIn>
 
-        {/* Scroll Indicator - Gentle Animation */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 animate-bounce">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 animate-bounce">
           <div className="flex flex-col items-center gap-2">
             <span className="text-white/60 text-sm font-medium">
               Scroll to explore
@@ -148,75 +104,50 @@ export function Home() {
         </div>
       </section>
 
-      {/* PREMIUM STATS BANNER - Minimalist & Elegant */}
-      <section className="py-16 sm:py-20 lg:py-24 bg-gradient-to-r from-[#f9fafb] to-[#f3f4f6] border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10 lg:gap-12">
-            {homeStats.map((stat) => {
-              const Icon = statIcons[stat.icon];
-              return (
-                <StaggerItem
-                  key={stat.label}
-                  className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 group text-center sm:text-left"
-                >
-                  {/* Icon Badge - Subtle & Premium */}
-                  <div
-                    className={`flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-full ${stat.iconBgClass} flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-sm`}
-                  >
-                    <Icon
-                      className="w-7 h-7 sm:w-8 sm:h-8 text-white"
-                      strokeWidth={1.5}
-                    />
-                  </div>
+      {/* ABOUT & TRUST — brand only, no property inventory */}
+      <section className="py-20 sm:py-28 lg:py-32 bg-white border-t border-slate-100">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <FadeIn>
+            <p className="text-xs sm:text-sm font-bold uppercase tracking-[0.2em] text-[#059669] mb-4">
+              About Sarangani Resources Corporation
+            </p>
+            <h2
+              className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 tracking-tight mb-6 leading-tight"
+              style={{ letterSpacing: "-0.02em" }}
+            >
+              Building the Future of Economic Development in SOCCSKSARGEN
+            </h2>
+            <p className="text-base sm:text-lg text-gray-600 leading-relaxed font-light mb-6">
+              {companyProfile.paragraphs[0]}
+            </p>
+            <p className="text-sm sm:text-base text-gray-500 leading-relaxed max-w-2xl mx-auto">
+              For detailed property listings, zone specifications, and subdivision
+              portfolios, visit our dedicated Properties page.
+            </p>
+          </FadeIn>
+        </div>
 
-                  {/* Stat Content */}
-                  <div className="flex-1">
-                    <div
-                      className="text-3xl sm:text-4xl lg:text-5xl text-gray-900 mb-1 lg:mb-2"
-                      style={{ fontWeight: 800, letterSpacing: "-0.02em" }}
-                    >
-                      {stat.value}
-                    </div>
-                    <p className="text-sm sm:text-base text-gray-600 font-medium tracking-tight">
-                      {stat.label}
-                    </p>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-16 pt-12 border-t border-slate-100">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-10 text-center">
+            {trustValues.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div key={item.label} className="flex flex-col items-center">
+                  <div className="w-12 h-12 rounded-full bg-slate-900 flex items-center justify-center mb-4">
+                    <Icon className="w-5 h-5 text-[#84cc16]" strokeWidth={1.5} />
                   </div>
-                </StaggerItem>
+                  <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-2">
+                    {item.label}
+                  </h3>
+                  <p className="text-sm text-gray-500 leading-relaxed max-w-[16rem]">
+                    {item.detail}
+                  </p>
+                </div>
               );
             })}
-          </StaggerContainer>
+          </div>
         </div>
       </section>
-
-      {/* COMPANY STATS BANNER - Lazy-loaded with Suspense */}
-      <Suspense fallback={<SectionSkeleton variant="grid" itemCount={3} />}>
-        <StatsBanner />
-      </Suspense>
-
-      {/* PROPERTY GRID - Lazy-loaded with Suspense */}
-      <Suspense fallback={<SectionSkeleton variant="grid" itemCount={4} />}>
-        <PropertyGrid />
-      </Suspense>
-
-      {/* INFRASTRUCTURE - Lazy-loaded with Suspense */}
-      <Suspense fallback={<SectionSkeleton variant="grid" itemCount={4} />}>
-        <Infrastructure />
-      </Suspense>
-
-      {/* FEATURED ZONES - Lazy-loaded with Suspense */}
-      <Suspense fallback={<SectionSkeleton variant="grid" itemCount={4} />}>
-        <FeaturedZonesSection />
-      </Suspense>
-
-      {/* TRUST BANNER - Lazy-loaded with Suspense */}
-      <Suspense fallback={<SectionSkeleton variant="list" itemCount={4} />}>
-        <PartnersSection />
-      </Suspense>
-
-      {/* CTA SECTION - Lazy-loaded with Suspense */}
-      <Suspense fallback={<SectionSkeleton variant="hero" height={250} />}>
-        <CTASection />
-      </Suspense>
     </div>
   );
 }

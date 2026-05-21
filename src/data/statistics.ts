@@ -4,8 +4,8 @@ export const homeHero = {
   titleLine1: 'Empowering Economic Growth',
   titleLine2: 'in SOCCSKSARGEN',
   subtitle: 'Premier economic zones and industrial real estate solutions',
-  ctaLabel: 'Explore Leasing Opportunities',
-  ctaPath: '/leasing',
+  ctaLabel: 'Explore Our Properties',
+  ctaPath: '/properties',
 } as const;
 
 export const homeStats: { value: string; label: string; icon: StatIconId; iconBgClass: string }[] = [
