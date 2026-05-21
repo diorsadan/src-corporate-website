@@ -52,23 +52,15 @@ function ImageWithFallbackComponent(props: ImageWithFallbackProps) {
   }
 
   return (
-    <span className="relative block h-full w-full min-h-0 min-w-0 max-w-full">
-      {!isLoaded && (
-        <span
-          className="pointer-events-none absolute inset-0 z-10 block animate-pulse bg-gradient-to-br from-gray-100 to-gray-200"
-          aria-hidden
-        />
-      )}
-      <img
-        src={src}
-        alt={alt}
-        className={className}
-        style={style}
-        {...rest}
-        onLoad={handleLoad}
-        onError={handleError}
-      />
-    </span>
+    <img
+      src={src}
+      alt={alt}
+      className={className}
+      style={style}
+      {...rest}
+      onLoad={handleLoad}
+      onError={handleError}
+    />
   );
 }
 

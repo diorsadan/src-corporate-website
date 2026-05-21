@@ -29,8 +29,10 @@ export interface Property {
   description: string;
   location: string;
   province: string;
-  category: "agro-industrial" | "industrial" | "light-manufacturing";
+  category: "industrial-zone" | "subdivision";
   peazaDeclarationDate: string;
+  images: string[];
+  features?: string[];
   coordinates?: {
     lat: number;
     lng: number;
@@ -71,9 +73,9 @@ const yearsInBusiness = calculateYearsInBusiness(foundingDate);
 
 export const companyStats: CompanyStat[] = [
   {
-    label: "Total Managed Land",
-    value: "158.47 ha",
-    description: "Hectares of strategically developed PEZA-registered zones",
+    label: "Total Managed Land (Hectares)",
+    value: "158.47",
+    description: "Strategically developed PEZA-registered zones",
   },
   {
     label: "Active Locators",
@@ -139,6 +141,38 @@ export const timelineData: TimelineEvent[] = [
 // PROPERTY & ZONE PORTFOLIO
 // ============================================================================
 
+/** Builds a 5-image asset path array for industrial or subdivision listings */
+function buildPropertyImages(
+  folder: "industrial" | "subdivision",
+  slug: string,
+  extension: string = "jpg",
+): string[] {
+  return [1, 2, 3, 4, 5].map(
+    (n) => `/assets/${folder}/${slug}-${n}.${extension}`,
+  );
+}
+
+/** Filename slugs under /public/assets/industrial/ — each uses {slug}-1.jpg … {slug}-5.jpg */
+const INDUSTRIAL_IMAGE_SLUGS: Record<string, string> = {
+  "cannery-polomolok": "src-cannery",
+  "allah-valley": "src-allah-valley",
+  calumpang: "src-calumpang",
+  "upper-klinan": "src-upper-klinan",
+};
+
+/** Filename slugs under /public/assets/subdivision/ — each uses {slug}-1.jpg … {slug}-5.jpg */
+const SUBDIVISION_IMAGE_SLUGS: Record<string, string> = {
+  "sub-polotana-1": "polotana-phase-i",
+  "sub-polotana-2": "polotana-phase-ii",
+  "sub-polotana-3": "polotana-phase-iii",
+  "sub-kaunlaran": "kaunlaran-subdivision",
+  "sub-lantana": "lantana-subdivision",
+  "sub-springville": "springville-subdivision",
+  "sub-cannery-housing": "cannery-housing-subdivision",
+  "sub-sandagatana": "sandagatana-subdivision",
+  "sub-dole-gawad-pagibig": "dole-gawad-pag-ibig-subdivision",
+};
+
 export const propertiesData: Property[] = [
   {
     id: "cannery-polomolok",
@@ -149,8 +183,12 @@ export const propertiesData: Property[] = [
       "Our flagship agro-industrial hub. Directly integrated with Dole Philippines' global supply chain, offering world-class agro-industrial processing facilities, advanced cold storage capabilities, and heavy logistics staging areas.",
     location: "Polomolok",
     province: "South Cotabato",
-    category: "agro-industrial",
+    category: "industrial-zone",
     peazaDeclarationDate: "April 29, 2002",
+    images: buildPropertyImages(
+      "industrial",
+      INDUSTRIAL_IMAGE_SLUGS["cannery-polomolok"],
+    ),
     coordinates: {
       lat: 6.2238,
       lng: 125.0682,
@@ -165,8 +203,12 @@ export const propertiesData: Property[] = [
       "Strategically located in the region's agricultural heartland. Designed for high-volume agro-processing, bulk storage, and milling operations, supporting the rich agricultural output of the valley.",
     location: "Surallah",
     province: "South Cotabato",
-    category: "agro-industrial",
+    category: "industrial-zone",
     peazaDeclarationDate: "December 12, 2008",
+    images: buildPropertyImages(
+      "industrial",
+      INDUSTRIAL_IMAGE_SLUGS["allah-valley"],
+    ),
     coordinates: {
       lat: 6.3725,
       lng: 124.7397,
@@ -181,8 +223,12 @@ export const propertiesData: Property[] = [
       "A premier industrial and packaging zone strategically positioned near major logistics arteries, optimizing supply chain efficiency for packaging and manufacturing locators.",
     location: "General Santos City",
     province: "South Cotabato",
-    category: "industrial",
+    category: "industrial-zone",
     peazaDeclarationDate: "December 8, 2003",
+    images: buildPropertyImages(
+      "industrial",
+      INDUSTRIAL_IMAGE_SLUGS.calumpang,
+    ),
     coordinates: {
       lat: 6.0961,
       lng: 125.1328,
@@ -197,11 +243,240 @@ export const propertiesData: Property[] = [
       "Designated for light to medium manufacturing, warehousing, and logistics expansion, featuring reinforced road networks and rapid highway access for seamless distribution.",
     location: "Polomolok",
     province: "South Cotabato",
-    category: "light-manufacturing",
+    category: "industrial-zone",
     peazaDeclarationDate: "October 20, 2020",
+    images: buildPropertyImages(
+      "industrial",
+      INDUSTRIAL_IMAGE_SLUGS["upper-klinan"],
+    ),
     coordinates: {
       lat: 6.2272,
       lng: 125.0744,
+    },
+  },
+  {
+    id: "sub-polotana-1",
+    name: "Polotana Phase I Subdivision",
+    area: 0,
+    areaFormatted: "Residential Lots",
+    description:
+      "Master-planned residential community in Polomolok offering titled lots, paved roads, and a secure neighborhood environment ready for house construction.",
+    location: "Polomolok",
+    province: "South Cotabato",
+    category: "subdivision",
+    peazaDeclarationDate: "SRC Residential Portfolio",
+    images: buildPropertyImages(
+      "subdivision",
+      SUBDIVISION_IMAGE_SLUGS["sub-polotana-1"],
+    ),
+    features: [
+      "Residential Lots Available",
+      "Master-planned Community",
+      "Ready for House Construction",
+    ],
+    coordinates: {
+      lat: 6.2215,
+      lng: 125.0642,
+    },
+  },
+  {
+    id: "sub-polotana-2",
+    name: "Polotana Phase II Subdivision",
+    area: 0,
+    areaFormatted: "Residential Lots",
+    description:
+      "Second-phase expansion of the Polotana residential corridor with improved lot layouts, community access roads, and proximity to Cannery Site employment centers.",
+    location: "Polomolok",
+    province: "South Cotabato",
+    category: "subdivision",
+    peazaDeclarationDate: "SRC Residential Portfolio",
+    images: buildPropertyImages(
+      "subdivision",
+      SUBDIVISION_IMAGE_SLUGS["sub-polotana-2"],
+    ),
+    features: [
+      "Residential Lots Available",
+      "Master-planned Community",
+      "Ready for House Construction",
+    ],
+    coordinates: {
+      lat: 6.2228,
+      lng: 125.0658,
+    },
+  },
+  {
+    id: "sub-polotana-3",
+    name: "Polotana Phase III Subdivision",
+    area: 0,
+    areaFormatted: "Residential Lots",
+    description:
+      "Latest Polotana phase delivering additional residential inventory with structured blocks, drainage, and long-term community planning for growing families.",
+    location: "Polomolok",
+    province: "South Cotabato",
+    category: "subdivision",
+    peazaDeclarationDate: "SRC Residential Portfolio",
+    images: buildPropertyImages(
+      "subdivision",
+      SUBDIVISION_IMAGE_SLUGS["sub-polotana-3"],
+    ),
+    features: [
+      "Residential Lots Available",
+      "Master-planned Community",
+      "Ready for House Construction",
+    ],
+    coordinates: {
+      lat: 6.2241,
+      lng: 125.0671,
+    },
+  },
+  {
+    id: "sub-kaunlaran",
+    name: "Kaunlaran Subdivision",
+    area: 0,
+    areaFormatted: "Residential Lots",
+    description:
+      "Kaunlaran Subdivision provides affordable residential lots in a well-organized Polomolok community designed for progressive homeownership near key industrial anchors.",
+    location: "Polomolok",
+    province: "South Cotabato",
+    category: "subdivision",
+    peazaDeclarationDate: "SRC Residential Portfolio",
+    images: buildPropertyImages(
+      "subdivision",
+      SUBDIVISION_IMAGE_SLUGS["sub-kaunlaran"],
+    ),
+    features: [
+      "Residential Lots Available",
+      "Master-planned Community",
+      "Ready for House Construction",
+    ],
+    coordinates: {
+      lat: 6.2198,
+      lng: 125.0705,
+    },
+  },
+  {
+    id: "sub-lantana",
+    name: "Lantana Subdivision",
+    area: 0,
+    areaFormatted: "Residential Lots",
+    description:
+      "Lantana Subdivision features a calm residential setting with structured lotting, community streets, and convenient access to Polomolok commercial and employment hubs.",
+    location: "Polomolok",
+    province: "South Cotabato",
+    category: "subdivision",
+    peazaDeclarationDate: "SRC Residential Portfolio",
+    images: buildPropertyImages(
+      "subdivision",
+      SUBDIVISION_IMAGE_SLUGS["sub-lantana"],
+    ),
+    features: [
+      "Residential Lots Available",
+      "Master-planned Community",
+      "Ready for House Construction",
+    ],
+    coordinates: {
+      lat: 6.2186,
+      lng: 125.0628,
+    },
+  },
+  {
+    id: "sub-springville",
+    name: "Springville Subdivision",
+    area: 0,
+    areaFormatted: "Residential Lots",
+    description:
+      "Springville Subdivision in General Santos City offers master-planned residential lots with strong connectivity to urban services, schools, and regional logistics corridors.",
+    location: "General Santos City",
+    province: "South Cotabato",
+    category: "subdivision",
+    peazaDeclarationDate: "SRC Residential Portfolio",
+    images: buildPropertyImages(
+      "subdivision",
+      SUBDIVISION_IMAGE_SLUGS["sub-springville"],
+    ),
+    features: [
+      "Residential Lots Available",
+      "Master-planned Community",
+      "Ready for House Construction",
+    ],
+    coordinates: {
+      lat: 6.1128,
+      lng: 125.1717,
+    },
+  },
+  {
+    id: "sub-cannery-housing",
+    name: "Cannery Housing Subdivision",
+    area: 0,
+    areaFormatted: "Residential Lots",
+    description:
+      "Cannery Housing Subdivision sits within the Cannery Site footprint, providing workforce-adjacent residential lots with direct access to Sarangani Economic Development Zone operations.",
+    location: "Polomolok",
+    province: "South Cotabato",
+    category: "subdivision",
+    peazaDeclarationDate: "SRC Residential Portfolio",
+    images: buildPropertyImages(
+      "subdivision",
+      SUBDIVISION_IMAGE_SLUGS["sub-cannery-housing"],
+    ),
+    features: [
+      "Residential Lots Available",
+      "Master-planned Community",
+      "Ready for House Construction",
+    ],
+    coordinates: {
+      lat: 6.2238,
+      lng: 125.0682,
+    },
+  },
+  {
+    id: "sub-sandagatana",
+    name: "Sandagatana Subdivision",
+    area: 0,
+    areaFormatted: "Residential Lots",
+    description:
+      "Sandagatana Subdivision delivers organized residential blocks in Polomolok with community infrastructure suited for families building long-term homes in South Cotabato.",
+    location: "Polomolok",
+    province: "South Cotabato",
+    category: "subdivision",
+    peazaDeclarationDate: "SRC Residential Portfolio",
+    images: buildPropertyImages(
+      "subdivision",
+      SUBDIVISION_IMAGE_SLUGS["sub-sandagatana"],
+    ),
+    features: [
+      "Residential Lots Available",
+      "Master-planned Community",
+      "Ready for House Construction",
+    ],
+    coordinates: {
+      lat: 6.2174,
+      lng: 125.0664,
+    },
+  },
+  {
+    id: "sub-dole-gawad-pagibig",
+    name: "Dole Gawad Pag-ibig Subdivision",
+    area: 0,
+    areaFormatted: "Residential Lots",
+    description:
+      "Dole Gawad Pag-ibig Subdivision supports employee and community housing initiatives with ready residential lots aligned to SRC's legacy partnership with Dole Philippines.",
+    location: "Polomolok",
+    province: "South Cotabato",
+    category: "subdivision",
+    peazaDeclarationDate: "SRC Residential Portfolio",
+    images: buildPropertyImages(
+      "subdivision",
+      SUBDIVISION_IMAGE_SLUGS["sub-dole-gawad-pagibig"],
+    ),
+    features: [
+      "Residential Lots Available",
+      "Master-planned Community",
+      "Ready for House Construction",
+    ],
+    coordinates: {
+      lat: 6.2209,
+      lng: 125.0721,
     },
   },
 ];

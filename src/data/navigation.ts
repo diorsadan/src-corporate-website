@@ -2,7 +2,6 @@ export const primaryNav = [
   { path: '/', label: 'Home' },
   { path: '/about', label: 'About Us' },
   { path: '/properties', label: 'Our Properties' },
-  { path: '/leasing', label: 'Commercial Leasing' },
   { path: '/resources', label: 'Investor Resources' },
   { path: '/contact', label: 'Contact Us' },
 ] as const;
@@ -18,7 +17,6 @@ export const footerSections: { title: string; links: FooterNavLink[] }[] = [
       { label: 'Home', href: '/' },
       { label: 'About Us', href: '/about' },
       { label: 'Our Properties', href: '/properties' },
-      { label: 'Commercial Leasing', href: '/leasing' },
     ],
   },
   {

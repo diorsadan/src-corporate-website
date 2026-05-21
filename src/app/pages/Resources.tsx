@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   CheckCircle,
@@ -10,14 +9,13 @@ import {
   Briefcase,
   DollarSign,
   FileText,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import {
   FadeIn,
   StaggerContainer,
   StaggerItem,
 } from "@/components/animations/index";
+import { PropertyImageCarousel } from "@/components/common/PropertyImageCarousel";
 import { images } from "@/constants/images";
 
 const carouselImagePaths = [
@@ -27,86 +25,7 @@ const carouselImagePaths = [
   "/images/soccsksargen/4.jpg",
   "/images/soccsksargen/5.jpg",
   "/images/soccsksargen/6.jpg",
-] as const;
-
-function InvestorCarousel() {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const startAutoPlay = () => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
-    intervalRef.current = window.setInterval(() => {
-      setActiveIndex(
-        (currentIndex) => (currentIndex + 1) % carouselImagePaths.length,
-      );
-    }, 3000);
-  };
-
-  useEffect(() => {
-    startAutoPlay();
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, []);
-
-  const handleNext = () => {
-    setActiveIndex(
-      (currentIndex) => (currentIndex + 1) % carouselImagePaths.length,
-    );
-    startAutoPlay();
-  };
-
-  const handlePrevious = () => {
-    setActiveIndex(
-      (currentIndex) =>
-        (currentIndex - 1 + carouselImagePaths.length) %
-        carouselImagePaths.length,
-    );
-    startAutoPlay();
-  };
-
-  return (
-    <div className="w-full h-[500px] rounded-2xl overflow-hidden shadow-md border border-slate-100 bg-slate-900 relative group">
-      {carouselImagePaths.map((src, index) => (
-        <motion.div
-          key={src}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: activeIndex === index ? 1 : 0 }}
-          transition={{ duration: 1.0, ease: "easeInOut" }}
-          className="absolute inset-0"
-        >
-          <img
-            src={src}
-            alt={`SOCCSKSARGEN premium image ${index + 1}`}
-            className="object-cover w-full h-full"
-          />
-        </motion.div>
-      ))}
-
-      <motion.button
-        onClick={handlePrevious}
-        aria-label="Previous Image"
-        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 backdrop-blur-sm text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
-        whileTap={{ scale: 0.95 }}
-      >
-        <ChevronLeft className="w-6 h-6" />
-      </motion.button>
-
-      <motion.button
-        onClick={handleNext}
-        aria-label="Next Image"
-        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 backdrop-blur-sm text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
-        whileTap={{ scale: 0.95 }}
-      >
-        <ChevronRight className="w-6 h-6" />
-      </motion.button>
-    </div>
-  );
-}
+];
 
 export function Resources() {
   return (
@@ -229,7 +148,13 @@ export function Resources() {
               </div>
             </FadeIn>
 
-            <InvestorCarousel />
+            <div className="w-full rounded-2xl overflow-hidden shadow-md border border-slate-100">
+              <PropertyImageCarousel
+                images={carouselImagePaths}
+                alt="SOCCSKSARGEN investor showcase"
+                heightClass="h-[500px]"
+              />
+            </div>
           </div>
         </div>
       </section>

@@ -77,10 +77,39 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
     <!-- Favicon & App Icons -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="alternate icon" type="image/png" href="/favicon-32x32.png" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" id="src-favicon" href="/assets/logos/new-src-logo.png" />
+    <link rel="apple-touch-icon" href="/assets/logos/new-src-logo.png" />
     <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Dynamic Circular Favicon Generator -->
+    <script>
+      (function() {
+        const faviconImg = new Image();
+        // Points directly to our logo inside public/assets/logos/
+        faviconImg.src = '/assets/logos/new-src-logo.png';
+        faviconImg.onload = function() {
+          const canvas = document.createElement('canvas');
+          canvas.width = 32;
+          canvas.height = 32;
+          const ctx = canvas.getContext('2d');
+          
+          // Create a perfect circular clipping path
+          ctx.beginPath();
+          ctx.arc(16, 16, 16, 0, Math.PI * 2);
+          ctx.closePath();
+          ctx.clip();
+          
+          // Paint our exact PNG asset inside the circular boundary
+          ctx.drawImage(faviconImg, 0, 0, 32, 32);
+          
+          // Dynamically update the link tag with the circular canvas stream
+          const targetLink = document.getElementById('src-favicon');
+          if (targetLink) {
+            targetLink.href = canvas.toDataURL('image/png');
+          }
+        };
+      })();
+    </script>
 
     <!-- Canonical URL -->
     <link rel="canonical" href="https://saranganiresources.com/" />
