@@ -44,6 +44,9 @@ export const footerCopyright = {
   suffix: 'All rights reserved.',
 };
 
+export const footerDeveloperCredits =
+  'Website Architecture by Dion Adan & Vince Ledesma';
+
 export const footerLegalLinks: { label: string; href: string }[] = [
   { label: 'Privacy Policy', href: '#' },
   { label: 'Terms of Service', href: '#' },

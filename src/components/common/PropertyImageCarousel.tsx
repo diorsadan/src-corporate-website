@@ -120,8 +120,12 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
   const imagesRef = useRef(images);
   imagesRef.current = images;
 
-  const groupHover =
-    parentGroupName === "card" ? "group-hover/card" : "group-hover";
+  const isCardContext = parentGroupName === "card";
+  const groupHover = isCardContext ? "group-hover/card" : "group-hover";
+  /** Card grids hide controls until parent hover; standalone carousels use root `group` */
+  const controlRevealClass = isCardContext
+    ? `opacity-0 ${groupHover}:opacity-100`
+    : "opacity-0 group-hover:opacity-100";
 
   const isEngaged = isHovered || pointerOver;
 
@@ -212,7 +216,9 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
 
   return (
     <div
-      className={`w-full ${heightClass} overflow-hidden bg-slate-900 relative`}
+      className={`w-full ${heightClass} overflow-hidden bg-slate-900 relative ${
+        isCardContext ? "" : "group"
+      }`}
       onPointerEnter={() =>
         (advanceOnHover || resetToFirstWhenIdle) && setPointerOver(true)
       }
@@ -259,7 +265,7 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
             initial={false}
             whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.92 }}
-            className={`absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 backdrop-blur-md text-white p-3 rounded-full opacity-0 ${groupHover}:opacity-100 transition-all duration-300 z-10 shadow-lg`}
+            className={`absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 backdrop-blur-md text-white p-3 rounded-full ${controlRevealClass} transition-all duration-300 z-10 shadow-lg`}
           >
             <ChevronLeft className="w-6 h-6" />
           </motion.button>
@@ -271,7 +277,7 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
             initial={false}
             whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.92 }}
-            className={`absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 backdrop-blur-md text-white p-3 rounded-full opacity-0 ${groupHover}:opacity-100 transition-all duration-300 z-10 shadow-lg`}
+            className={`absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 backdrop-blur-md text-white p-3 rounded-full ${controlRevealClass} transition-all duration-300 z-10 shadow-lg`}
           >
             <ChevronRight className="w-6 h-6" />
           </motion.button>

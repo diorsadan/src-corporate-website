@@ -22,7 +22,6 @@ import {
 import {
   contactLocationsSection,
   contactOffices,
-  contactPageHero,
   contactSidebarCards,
   contactFormSection,
   inquiryTypeOptions,
@@ -320,16 +319,13 @@ export function Contact() {
 
   return (
     <div>
-      <section className="py-20 bg-gradient-to-br from-[#059669] to-[#047857] text-white">
+      <section className="relative pt-12 pb-16 md:pt-16 md:pb-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-5xl mb-4" style={{ fontWeight: 700 }}>
-            {contactPageHero.title}
-          </h1>
-          <p className="text-xl text-gray-100">{contactPageHero.subtitle}</p>
+          <span className="text-[10px] md:text-[11px] font-bold text-emerald-600 tracking-[0.2em] pl-[0.2em] uppercase block mb-6 leading-none">
+            Sarangani Resources Corporation
+          </span>
         </div>
-      </section>
 
-      <section className="py-20 bg-white">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Left Column: Inquiry Form */}
           <div className="lg:col-span-2 bg-white rounded-2xl p-8 shadow-sm border border-slate-100">

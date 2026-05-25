@@ -1,4 +1,7 @@
 :root {
+  /* Slightly smaller than browser default (16px) so 100% zoom feels less cramped */
+  --site-root-font-size: 87.5%;
+
   /* Brand Colors */
   --color-primary: #059669;
   --color-primary-dark: #047857;
@@ -53,6 +56,10 @@
   --duration-normal: 300ms;
   --duration-slow: 500ms;
   --duration-slower: 700ms;
+}
+
+html {
+  font-size: var(--site-root-font-size);
 }
 
 .dark {

@@ -23,7 +23,7 @@ import {
 import { TeamSection } from "@/components/sections/TeamSection";
 
 function CompanyProfilePhoto() {
-  const [src, setSrc] = useState(TEAM_PROFILE_PHOTO);
+  const [src, setSrc] = useState<string>(TEAM_PROFILE_PHOTO);
 
   useEffect(() => {
     setSrc(TEAM_PROFILE_PHOTO);
@@ -46,7 +46,7 @@ function CompanyProfilePhoto() {
 }
 
 function TeamGroupPortraitBanner() {
-  const [src, setSrc] = useState(TEAM_GROUP_PHOTO);
+  const [src, setSrc] = useState<string>(TEAM_GROUP_PHOTO);
 
   useEffect(() => {
     setSrc(TEAM_GROUP_PHOTO);

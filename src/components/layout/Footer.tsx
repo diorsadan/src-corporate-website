@@ -3,6 +3,7 @@ import { Mail, Phone, MapPin } from "lucide-react";
 import {
   footerContactLines,
   footerCopyright,
+  footerDeveloperCredits,
   footerHeadquarters,
   footerLegalLinks,
   footerSections,
@@ -92,12 +93,20 @@ export function Footer() {
         </div>
 
         <div className="mt-16 sm:mt-20 lg:mt-24 pt-10 sm:pt-12 lg:pt-14 border-t border-gray-800">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-6 sm:gap-8">
-            <p className="text-gray-400 text-xs sm:text-sm text-center sm:text-left">
-              © {new Date().getFullYear()} {footerCopyright.organization}.{" "}
-              {footerCopyright.suffix}
-            </p>
-            <div className="flex gap-6 text-xs sm:text-sm flex-wrap justify-center sm:justify-end">
+          <div className="flex flex-col items-center text-center gap-2 md:flex-row md:justify-between md:items-center md:gap-6">
+            <div className="flex flex-col items-center text-center gap-2 md:items-start md:text-left">
+              <p className="text-gray-400 text-xs sm:text-sm leading-relaxed">
+                © {new Date().getFullYear()} {footerCopyright.organization}.{" "}
+                {footerCopyright.suffix}
+              </p>
+              <p className="text-gray-500 text-xs font-medium tracking-wide leading-relaxed">
+                {footerDeveloperCredits}
+              </p>
+            </div>
+            <nav
+              className="flex gap-6 text-xs sm:text-sm flex-wrap justify-center md:justify-end"
+              aria-label="Legal"
+            >
               {footerLegalLinks.map((link) => (
                 <a
                   key={link.label}
@@ -107,7 +116,7 @@ export function Footer() {
                   {link.label}
                 </a>
               ))}
-            </div>
+            </nav>
           </div>
         </div>
       </div>

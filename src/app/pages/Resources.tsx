@@ -16,7 +16,6 @@ import {
   StaggerItem,
 } from "@/components/animations/index";
 import { PropertyImageCarousel } from "@/components/common/PropertyImageCarousel";
-import { images } from "@/constants/images";
 
 const carouselImagePaths = [
   "/images/soccsksargen/1.jpg",
@@ -30,33 +29,23 @@ const carouselImagePaths = [
 export function Resources() {
   return (
     <div>
-      {/* Page Header */}
-      <section className="py-20 bg-gradient-to-br from-[#059669] to-[#047857] text-white">
+      <section className="relative pt-12 pb-16 md:pt-16 md:pb-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-5xl mb-4" style={{ fontWeight: 700 }}>
-            Investor & Locator Resources
-          </h1>
-          <p className="text-xl text-gray-100">
-            Everything you need to succeed in SOCCSKSARGEN
-          </p>
-        </div>
-      </section>
+          <span className="text-[10px] md:text-[11px] font-bold text-emerald-600 tracking-[0.2em] pl-[0.2em] uppercase block mb-6 leading-none">
+            Sarangani Resources Corporation
+          </span>
 
-      {/* Why Choose SOCCSKSARGEN */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <FadeIn className="text-center mb-12">
-            <h2
-              className="text-4xl mb-4 text-gray-900"
-              style={{ fontWeight: 700 }}
-            >
+          <FadeIn>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
               Why Choose SOCCSKSARGEN
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="mt-3 text-slate-500 text-sm md:text-base font-medium">
               Strategic advantages for your business operations
             </p>
           </FadeIn>
+        </div>
 
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 lg:mt-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <FadeIn>
               <div className="space-y-6">
@@ -153,6 +142,8 @@ export function Resources() {
                 images={carouselImagePaths}
                 alt="SOCCSKSARGEN investor showcase"
                 heightClass="h-[500px]"
+                autoPlay
+                autoPlayIntervalMs={4500}
               />
             </div>
           </div>
