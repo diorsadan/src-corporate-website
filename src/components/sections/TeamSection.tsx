@@ -8,10 +8,6 @@ import { FadeIn } from "@/components/animations/FadeIn";
 
 const CARD_VIEWPORT = { once: true, amount: 0.1 } as const;
 
-const CARD_HOVER = { y: -6, boxShadow: "0 10px 25px -5px rgb(0 0 0 / 0.05)" } as const;
-
-const CARD_SPRING = { type: "spring" as const, stiffness: 300, damping: 20 };
-
 const HONORIFIC_PREFIX = /^(Atty\.|Dr\.|Mr\.|Ms\.|Mrs\.)\s+/i;
 
 /** First + last significant name initials (e.g. "Atty. Rene Ruel B. Almero" → "RA"). */
@@ -47,7 +43,7 @@ function TeamMemberAvatar({ member }: TeamMemberAvatarProps) {
     <div className="w-32 h-32 mx-auto mb-6 overflow-hidden rounded-full border-2 border-slate-100 shadow-sm bg-white">
       {imageFailed ? (
         <div
-          className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#059669] via-[#047857] to-[#065f46]"
+          className="flex h-full w-full items-center justify-center bg-gradient-to-br from-emerald-600 via-emerald-700 to-emerald-900"
           role="img"
           aria-label={`${member.name} profile placeholder`}
         >
@@ -78,7 +74,7 @@ function TeamMemberAvatar({ member }: TeamMemberAvatarProps) {
 export function TeamSection() {
   return (
     <section
-      className="py-20 sm:py-24 lg:py-28 bg-gradient-to-b from-slate-50/80 to-white"
+      className="pt-10 pb-20 sm:pt-12 sm:pb-24 lg:pt-14 lg:pb-28 bg-gradient-to-b from-slate-50/80 to-white"
       aria-labelledby="team-section-heading"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -100,28 +96,47 @@ export function TeamSection() {
 
         <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 list-none p-0 m-0 mt-12">
           {teamMembers.map((member, index) => (
-            <li key={member.name}>
-              <motion.article
-                initial={{ opacity: 0, y: 15 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={CARD_VIEWPORT}
-                whileHover={CARD_HOVER}
-                transition={{
-                  ...CARD_SPRING,
-                  opacity: { duration: 0.45, ease: "easeOut" },
-                  y: { duration: 0.45, ease: "easeOut", delay: index * 0.08 },
-                }}
-                className="h-full bg-white border border-slate-200/80 p-8 rounded-2xl text-center shadow-sm"
+            <motion.li
+              key={member.name}
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={CARD_VIEWPORT}
+              transition={{
+                duration: 0.45,
+                ease: "easeOut",
+                delay: index * 0.08,
+              }}
+              className="h-full"
+            >
+              <article
+                className="group relative h-full min-h-[320px] overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm transition-all duration-300 cursor-pointer"
               >
-                <TeamMemberAvatar member={member} />
-                <h3 className="text-lg font-bold text-slate-900 leading-snug tracking-tight">
-                  {member.name}
-                </h3>
-                <p className="text-sm font-medium text-emerald-600 tracking-wide mt-1">
-                  {member.role}
-                </p>
-              </motion.article>
-            </li>
+                <div className="relative z-0 flex h-full flex-col items-center justify-center p-8 text-center transition-opacity duration-300 group-hover:opacity-0">
+                  <TeamMemberAvatar member={member} />
+                  <h3 className="text-lg font-bold text-slate-900 leading-snug tracking-tight">
+                    {member.name}
+                  </h3>
+                  <p className="text-sm font-medium text-emerald-600 tracking-wide mt-1">
+                    {member.role}
+                  </p>
+                </div>
+
+                <div
+                  className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-emerald-900 p-6 text-center opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100"
+                  aria-hidden
+                >
+                  <p className="text-white/95 text-sm md:text-base italic mb-4 leading-relaxed font-serif max-w-[18rem] sm:max-w-none">
+                    &ldquo;{member.quote}&rdquo;
+                  </p>
+                  <p className="text-emerald-100 font-semibold text-sm">
+                    {member.name}
+                  </p>
+                  <p className="text-emerald-300 text-xs uppercase tracking-wider mt-1">
+                    {member.role}
+                  </p>
+                </div>
+              </article>
+            </motion.li>
           ))}
         </ul>
       </div>

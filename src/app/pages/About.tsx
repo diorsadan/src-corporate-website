@@ -58,7 +58,7 @@ function TeamGroupPortraitBanner() {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.55, ease: "easeOut" }}
-      className="relative w-full h-[350px] md:h-[450px] rounded-3xl overflow-hidden shadow-lg border border-slate-100 my-12"
+      className="relative w-full h-[350px] md:h-[450px] rounded-3xl overflow-hidden shadow-lg border border-slate-100 mt-12 mb-0"
     >
       <img
         src={src}
@@ -86,13 +86,40 @@ function TeamGroupPortraitBanner() {
 export function About() {
   return (
     <div>
-      <section className="py-20 bg-gradient-to-br from-[#059669] to-[#047857] text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-5xl mb-4" style={{ fontWeight: 700 }}>
+      <section className="relative w-full overflow-hidden flex items-center justify-center min-h-[22rem] sm:min-h-[26rem] md:min-h-[28rem] pt-20 sm:pt-24 md:pt-28 pb-16 md:pb-20">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          className="absolute inset-0 w-full h-full object-cover"
+          aria-hidden
+        >
+          <source src="/videos/about-bg.mp4" type="video/mp4" />
+        </video>
+
+        <div
+          className="absolute inset-0 bg-emerald-950/60 backdrop-brightness-[0.8]"
+          aria-hidden
+        />
+
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="relative z-10 flex flex-col items-center justify-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center"
+        >
+          <h1
+            className="text-4xl sm:text-5xl md:text-6xl text-white mb-4 tracking-tight"
+            style={{ fontWeight: 700 }}
+          >
             {aboutPageHero.title}
           </h1>
-          <p className="text-xl text-gray-100">{aboutPageHero.subtitle}</p>
-        </div>
+          <p className="text-lg sm:text-xl text-gray-100 max-w-2xl mx-auto font-light">
+            {aboutPageHero.subtitle}
+          </p>
+        </motion.div>
       </section>
 
       <section className="py-20 bg-white">
@@ -123,7 +150,7 @@ export function About() {
         </div>
       </section>
 
-      <section className="py-20 bg-gray-50">
+      <section className="pt-20 pb-0 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <StaggerItem>

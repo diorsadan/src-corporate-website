@@ -1,6 +1,6 @@
 :root {
-  /* Slightly smaller than browser default (16px) so 100% zoom feels less cramped */
-  --site-root-font-size: 87.5%;
+  /* ~13px base (81.25% of 16px) — site reads comfortably at 100% browser zoom */
+  --site-root-font-size: 81.25%;
 
   /* Brand Colors */
   --color-primary: #059669;
