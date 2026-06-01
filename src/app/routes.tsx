@@ -6,6 +6,7 @@ import { Properties } from "./pages/Properties";
 import { Leasing } from "./pages/Leasing";
 import { Resources } from "./pages/Resources";
 import { Contact } from "./pages/Contact";
+import TeamCredits from "./pages/Credits";
 import { NotFound } from "./pages/NotFound";
 
 export const router = createBrowserRouter([
@@ -19,6 +20,7 @@ export const router = createBrowserRouter([
       { path: "leasing", Component: Leasing },
       { path: "resources", Component: Resources },
       { path: "contact", Component: Contact },
+      { path: "credits", Component: TeamCredits },
       { path: "*", Component: NotFound },
     ],
   },

@@ -25,7 +25,16 @@ export function Footer() {
               <ul className="space-y-2 lg:space-y-3">
                 {section.links.map((link) => (
                   <li key={link.label}>
-                    {link.external ? (
+                    {section.title === "Quick Links" &&
+                    link.href === "/credits" ? (
+                      <Link
+                        to={link.href}
+                        className="text-sm lg:text-base text-gray-400 hover:text-[#84cc16] transition-colors duration-200 flex items-center gap-2"
+                      >
+                        <span className="w-1 h-1 rounded-full bg-[#84cc16]" />
+                        {link.label}
+                      </Link>
+                    ) : link.external ? (
                       <a
                         href={link.href}
                         className="text-sm lg:text-base text-gray-400 hover:text-[#84cc16] transition-colors duration-200"
@@ -100,7 +109,13 @@ export function Footer() {
                 {footerCopyright.suffix}
               </p>
               <p className="text-gray-500 text-xs font-medium tracking-wide leading-relaxed">
-                {footerDeveloperCredits}
+                Website Architecture by{" "}
+                <Link
+                  to="/credits"
+                  className="text-gray-400 hover:text-[#84cc16] hover:underline transition-colors duration-200 font-semibold"
+                >
+                  Dion Ren S. Adan &amp; Vince Nikolai B. Ledesma
+                </Link>
               </p>
             </div>
             <nav

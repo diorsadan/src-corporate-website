@@ -17,6 +17,7 @@ export const footerSections: { title: string; links: FooterNavLink[] }[] = [
       { label: 'Home', href: '/' },
       { label: 'About Us', href: '/about' },
       { label: 'Our Properties', href: '/properties' },
+      { label: 'Web Architecture Team', href: '/credits' },
     ],
   },
   {
@@ -45,7 +46,7 @@ export const footerCopyright = {
 };
 
 export const footerDeveloperCredits =
-  'Website Architecture by Dion Adan & Vince Ledesma';
+  'Website Architecture by Dion Ren S. Adan & Vince Nikolai B. Ledesma';
 
 export const footerLegalLinks: { label: string; href: string }[] = [
   { label: 'Privacy Policy', href: '#' },
