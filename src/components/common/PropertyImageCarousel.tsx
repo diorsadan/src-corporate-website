@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Pause,
+  Play,
+  Maximize2,
+  X,
+} from "lucide-react";
 
 /** Remote fallback when local assets are missing (industrial zones not yet uploaded) */
 export const PROPERTY_CAROUSEL_REMOTE_PLACEHOLDER =
@@ -17,6 +24,8 @@ interface CarouselSlideImageProps {
   alt: string;
   parentGroupName?: string;
   isActive: boolean;
+  className?: string;
+  onClick?: (e: React.MouseEvent) => void;
 }
 
 /**
@@ -27,6 +36,8 @@ function CarouselSlideImage({
   alt,
   parentGroupName,
   isActive,
+  className = "absolute inset-0 w-full h-full object-cover",
+  onClick,
 }: CarouselSlideImageProps) {
   const [imageSrc, setImageSrc] = useState(src);
   const [useBrandPlaceholder, setUseBrandPlaceholder] = useState(false);
@@ -59,6 +70,7 @@ function CarouselSlideImage({
         className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#059669] via-[#047857] to-[#065f46]"
         role="img"
         aria-label={alt}
+        onClick={onClick}
       >
         <span className="sr-only">{alt}</span>
         <span className="text-white/90 text-sm font-semibold tracking-wide px-6 text-center">
@@ -72,9 +84,10 @@ function CarouselSlideImage({
     <img
       src={imageSrc}
       alt={alt}
-      className={`absolute inset-0 w-full h-full object-cover ${zoomClass}`}
+      className={`${className} ${zoomClass}`}
       style={isActive ? GPU_LAYER_STYLE : undefined}
       onError={handleImageError}
+      onClick={onClick}
     />
   );
 }
@@ -96,10 +109,15 @@ export interface PropertyImageCarouselProps {
   /** Auto-advance only while hovered; snap back to first image when idle (grid cards) */
   resetToFirstWhenIdle?: boolean;
   autoPlayIntervalMs?: number;
+  /** Allow opening a fullscreen lightbox (default true) */
+  enableLightbox?: boolean;
+  /** Show pause / play control when auto-advance is enabled (default true) */
+  enablePauseControl?: boolean;
 }
 
 /**
- * Property slideshow with layered crossfade, hover-triggered auto-advance, and manual controls.
+ * Property slideshow with layered crossfade, hover-triggered auto-advance, manual controls,
+ * pause/resume, and optional fullscreen lightbox.
  */
 export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
   images,
@@ -112,9 +130,13 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
   autoPlay = false,
   resetToFirstWhenIdle = false,
   autoPlayIntervalMs = 2800,
+  enableLightbox = true,
+  enablePauseControl = true,
 }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [pointerOver, setPointerOver] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const firstTickRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const imagesRef = useRef(images);
@@ -125,12 +147,16 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
   /** Card grids hide controls until parent hover; standalone carousels use root `group` */
   const controlRevealClass = isCardContext
     ? `opacity-0 ${groupHover}:opacity-100`
-    : "opacity-0 group-hover:opacity-100";
+    : "opacity-70 group-hover:opacity-100";
 
   const isEngaged = isHovered || pointerOver;
+  const canAutoAdvance = autoPlay || advanceOnHover || resetToFirstWhenIdle;
 
   const shouldAutoPlay =
     images.length > 1 &&
+    canAutoAdvance &&
+    !isPaused &&
+    !isLightboxOpen &&
     ((autoPlay && (!resetToFirstWhenIdle || isEngaged)) ||
       (advanceOnHover && isEngaged));
 
@@ -151,15 +177,23 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
     setActiveIndex((current) => (current + 1) % len);
   }, []);
 
+  const goToPrevious = useCallback(() => {
+    const len = imagesRef.current.length;
+    if (len <= 1) return;
+    setActiveIndex((current) => (current - 1 + len) % len);
+  }, []);
+
   useEffect(() => {
     setActiveIndex(0);
+    setIsPaused(false);
+    setIsLightboxOpen(false);
   }, [images]);
 
   useEffect(() => {
-    if (resetToFirstWhenIdle && !isEngaged) {
+    if (resetToFirstWhenIdle && !isEngaged && !isLightboxOpen) {
       setActiveIndex(0);
     }
-  }, [resetToFirstWhenIdle, isEngaged]);
+  }, [resetToFirstWhenIdle, isEngaged, isLightboxOpen]);
 
   useEffect(() => {
     clearAutoPlay();
@@ -178,27 +212,78 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
     return clearAutoPlay;
   }, [shouldAutoPlay, autoPlayIntervalMs, goToNext, clearAutoPlay]);
 
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsLightboxOpen(false);
+      }
+      if (e.key === "ArrowLeft") {
+        goToPrevious();
+      }
+      if (e.key === "ArrowRight") {
+        goToNext();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isLightboxOpen, goToNext, goToPrevious]);
+
   const stopBubble = (e: React.MouseEvent) => {
     if (isolateControls) e.stopPropagation();
   };
 
+  const pauseForManualView = () => {
+    if (canAutoAdvance) {
+      setIsPaused(true);
+    }
+  };
+
   const handleNext = (e: React.MouseEvent) => {
     stopBubble(e);
+    pauseForManualView();
     goToNext();
   };
 
   const handlePrevious = (e: React.MouseEvent) => {
     stopBubble(e);
-    setActiveIndex(
-      (currentIndex) =>
-        (currentIndex - 1 + images.length) % images.length,
-    );
+    pauseForManualView();
+    goToPrevious();
   };
 
   const goToSlide = (e: React.MouseEvent, index: number) => {
     stopBubble(e);
+    pauseForManualView();
     setActiveIndex(index);
   };
+
+  const togglePause = (e: React.MouseEvent) => {
+    stopBubble(e);
+    setIsPaused((paused) => !paused);
+  };
+
+  const openLightbox = (e: React.MouseEvent) => {
+    stopBubble(e);
+    setIsPaused(true);
+    setIsLightboxOpen(true);
+  };
+
+  const handleSlideClick = (e: React.MouseEvent) => {
+    if (!enableLightbox || isCardContext) return;
+    openLightbox(e);
+  };
+
+  const showPauseControl =
+    enablePauseControl && images.length > 1 && canAutoAdvance;
+  const showExpandControl = enableLightbox && images.length > 0;
 
   if (images.length === 0) {
     return (
@@ -215,94 +300,219 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
   }
 
   return (
-    <div
-      className={`w-full ${heightClass} overflow-hidden bg-slate-900 relative ${
-        isCardContext ? "" : "group"
-      }`}
-      onPointerEnter={() =>
-        (advanceOnHover || resetToFirstWhenIdle) && setPointerOver(true)
-      }
-      onPointerLeave={() =>
-        (advanceOnHover || resetToFirstWhenIdle) && setPointerOver(false)
-      }
-    >
-      {/* Layered crossfade — reliable visible transitions for auto-advance */}
-      <div className="absolute inset-0 overflow-hidden">
-        {images.map((src, index) => (
-          <motion.div
-            key={`${src}-${index}`}
-            className="absolute inset-0"
-            initial={false}
-            animate={{ opacity: activeIndex === index ? 1 : 0 }}
-            transition={SLIDE_TRANSITION}
-            style={{
-              zIndex: activeIndex === index ? 1 : 0,
-              pointerEvents: activeIndex === index ? "auto" : "none",
-            }}
-            aria-hidden={activeIndex !== index}
-          >
-            <CarouselSlideImage
-              src={src}
-              alt={`${alt} — photo ${index + 1}`}
-              parentGroupName={parentGroupName}
-              isActive={activeIndex === index}
-            />
-          </motion.div>
-        ))}
-      </div>
-
+    <>
       <div
-        className={`pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60 transition-opacity duration-500 ${groupHover}:opacity-90`}
-        aria-hidden
-      />
-
-      {images.length > 1 && (
-        <>
-          <motion.button
-            type="button"
-            onClick={handlePrevious}
-            aria-label="Previous image"
-            initial={false}
-            whileHover={{ scale: 1.08 }}
-            whileTap={{ scale: 0.92 }}
-            className={`absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 backdrop-blur-md text-white p-3 rounded-full ${controlRevealClass} transition-all duration-300 z-10 shadow-lg`}
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </motion.button>
-
-          <motion.button
-            type="button"
-            onClick={handleNext}
-            aria-label="Next image"
-            initial={false}
-            whileHover={{ scale: 1.08 }}
-            whileTap={{ scale: 0.92 }}
-            className={`absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 backdrop-blur-md text-white p-3 rounded-full ${controlRevealClass} transition-all duration-300 z-10 shadow-lg`}
-          >
-            <ChevronRight className="w-6 h-6" />
-          </motion.button>
-
-          <div
-            className={`absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10 opacity-70 ${groupHover}:opacity-100 transition-opacity duration-300`}
-          >
-            {images.map((_, index) => (
-              <button
-                key={index}
-                type="button"
-                onClick={(e) => goToSlide(e, index)}
-                aria-label={`Go to image ${index + 1}`}
-                aria-current={activeIndex === index ? "true" : undefined}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  activeIndex === index
-                    ? "w-7 bg-white shadow-sm"
-                    : "w-2 bg-white/40 hover:bg-white/80 hover:w-3"
+        className={`w-full ${heightClass} overflow-hidden bg-slate-900 relative ${
+          isCardContext ? "" : "group"
+        }`}
+        onPointerEnter={() =>
+          (advanceOnHover || resetToFirstWhenIdle) && setPointerOver(true)
+        }
+        onPointerLeave={() =>
+          (advanceOnHover || resetToFirstWhenIdle) && setPointerOver(false)
+        }
+      >
+        {/* Layered crossfade */}
+        <div className="absolute inset-0 overflow-hidden">
+          {images.map((src, index) => (
+            <motion.div
+              key={`${src}-${index}`}
+              className="absolute inset-0"
+              initial={false}
+              animate={{ opacity: activeIndex === index ? 1 : 0 }}
+              transition={SLIDE_TRANSITION}
+              style={{
+                zIndex: activeIndex === index ? 1 : 0,
+                pointerEvents: activeIndex === index ? "auto" : "none",
+              }}
+              aria-hidden={activeIndex !== index}
+            >
+              <CarouselSlideImage
+                src={src}
+                alt={`${alt} — photo ${index + 1}`}
+                parentGroupName={parentGroupName}
+                isActive={activeIndex === index}
+                onClick={
+                  enableLightbox && activeIndex === index
+                    ? handleSlideClick
+                    : undefined
+                }
+                className={`absolute inset-0 w-full h-full object-cover ${
+                  enableLightbox && !isCardContext && activeIndex === index
+                    ? "cursor-zoom-in"
+                    : ""
                 }`}
               />
-            ))}
+            </motion.div>
+          ))}
+        </div>
+
+        <div
+          className={`pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60 transition-opacity duration-500 ${groupHover}:opacity-90`}
+          aria-hidden
+        />
+
+        {(showPauseControl || showExpandControl) && (
+          <div
+            className={`absolute top-3 right-3 z-20 flex items-center gap-2 ${controlRevealClass} transition-all duration-300`}
+          >
+            {showPauseControl && (
+              <motion.button
+                type="button"
+                onClick={togglePause}
+                aria-label={isPaused ? "Resume slideshow" : "Pause slideshow"}
+                title={isPaused ? "Resume slideshow" : "Pause slideshow"}
+                whileHover={{ scale: 1.06 }}
+                whileTap={{ scale: 0.94 }}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-colors hover:bg-black/60"
+              >
+                {isPaused ? (
+                  <Play className="h-4 w-4 fill-current" />
+                ) : (
+                  <Pause className="h-4 w-4" />
+                )}
+              </motion.button>
+            )}
+            {showExpandControl && (
+              <motion.button
+                type="button"
+                onClick={openLightbox}
+                aria-label="Enlarge image"
+                title="Enlarge image"
+                whileHover={{ scale: 1.06 }}
+                whileTap={{ scale: 0.94 }}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-colors hover:bg-black/60"
+              >
+                <Maximize2 className="h-4 w-4" />
+              </motion.button>
+            )}
           </div>
-        </>
-      )}
-    </div>
+        )}
+
+        {images.length > 1 && (
+          <>
+            <motion.button
+              type="button"
+              onClick={handlePrevious}
+              aria-label="Previous image"
+              initial={false}
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.92 }}
+              className={`absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 backdrop-blur-md text-white p-3 rounded-full ${controlRevealClass} transition-all duration-300 z-10 shadow-lg`}
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </motion.button>
+
+            <motion.button
+              type="button"
+              onClick={handleNext}
+              aria-label="Next image"
+              initial={false}
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.92 }}
+              className={`absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 backdrop-blur-md text-white p-3 rounded-full ${controlRevealClass} transition-all duration-300 z-10 shadow-lg`}
+            >
+              <ChevronRight className="w-6 h-6" />
+            </motion.button>
+
+            <div
+              className={`absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10 opacity-70 ${groupHover}:opacity-100 transition-opacity duration-300`}
+            >
+              {images.map((_, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={(e) => goToSlide(e, index)}
+                  aria-label={`Go to image ${index + 1}`}
+                  aria-current={activeIndex === index ? "true" : undefined}
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    activeIndex === index
+                      ? "w-7 bg-white shadow-sm"
+                      : "w-2 bg-white/40 hover:bg-white/80 hover:w-3"
+                  }`}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      <AnimatePresence>
+        {isLightboxOpen && (
+          <motion.div
+            key="carousel-lightbox"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 sm:p-8"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${alt} — enlarged view`}
+            onClick={() => setIsLightboxOpen(false)}
+          >
+            <button
+              type="button"
+              onClick={() => setIsLightboxOpen(false)}
+              className="absolute top-4 right-4 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+              aria-label="Close enlarged image"
+            >
+              <X className="h-6 w-6" />
+            </button>
+
+            {images.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goToPrevious();
+                  }}
+                  className="absolute left-4 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition-colors hover:bg-white/20"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft className="h-7 w-7" />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goToNext();
+                  }}
+                  className="absolute right-4 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition-colors hover:bg-white/20"
+                  aria-label="Next image"
+                >
+                  <ChevronRight className="h-7 w-7" />
+                </button>
+              </>
+            )}
+
+            <motion.div
+              key={activeIndex}
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ duration: 0.25 }}
+              className="relative flex max-h-[90vh] max-w-6xl items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <CarouselSlideImage
+                src={images[activeIndex]}
+                alt={`${alt} — photo ${activeIndex + 1}`}
+                isActive
+                className="max-h-[90vh] max-w-full rounded-lg object-contain shadow-2xl"
+              />
+            </motion.div>
+
+            {images.length > 1 && (
+              <p className="absolute bottom-6 left-1/2 z-20 -translate-x-1/2 text-sm font-medium text-white/80">
+                {activeIndex + 1} / {images.length}
+              </p>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 

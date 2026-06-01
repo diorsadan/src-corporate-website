@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router";
+import { useNavigate } from "react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import { propertiesData, type Property } from "@/data/companyData";
 import {
@@ -9,6 +9,7 @@ import {
   CheckCircle,
   Ruler,
   Calendar,
+  Mail,
 } from "lucide-react";
 import {
   FADE_IN_UP,
@@ -46,6 +47,7 @@ function getPropertyFeatures(property: Property): string[] {
  * Filterable portfolio grid with premium hover cards and expandable property modal
  */
 export const PropertyGrid: React.FC = () => {
+  const navigate = useNavigate();
   const [activeFilter, setActiveFilter] =
     React.useState<PropertyFilterId>("all");
   const [selectedProperty, setSelectedProperty] =
@@ -94,6 +96,12 @@ export const PropertyGrid: React.FC = () => {
     e.stopPropagation();
     const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}&z=16`;
     window.open(mapsUrl, "_blank");
+  };
+
+  const goToContact = () => {
+    setSelectedProperty(null);
+    navigate("/contact");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -358,13 +366,14 @@ export const PropertyGrid: React.FC = () => {
                 </div>
 
                 <div className="pt-4 mt-2 border-t border-slate-100 space-y-3 shrink-0">
-                  <Link
-                    to="/contact"
-                    onClick={() => setSelectedProperty(null)}
-                    className="block w-full bg-primary hover:bg-primary-dark text-white font-bold py-3.5 px-4 rounded-xl text-center transition-colors duration-200 shadow-md"
+                  <button
+                    type="button"
+                    onClick={goToContact}
+                    className="w-full border border-slate-200 hover:border-primary text-gray-800 font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors duration-200"
                   >
-                    Inquire About This Property
-                  </Link>
+                    <Mail className="w-5 h-5 text-primary" />
+                    Contact Us
+                  </button>
                   <button
                     type="button"
                     onClick={(e) =>

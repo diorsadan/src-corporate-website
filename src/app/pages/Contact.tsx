@@ -476,7 +476,7 @@ export function Contact() {
                                   ? "border-red-500/50 bg-red-50/30"
                                   : "border-gray-300"
                               }`}
-                                placeholder="nico_led@yahoo.com"
+                                placeholder="juan.delacruz@email.com"
                               whileHover={
                                 !hasFieldError(validationErrors, "email")
                                   ? { borderColor: "#059669" }
