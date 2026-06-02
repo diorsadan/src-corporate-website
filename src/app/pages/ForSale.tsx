@@ -202,10 +202,12 @@ const LoginModal = ({
   isOpen,
   onClose,
   onSubmit,
+  supabaseConfigured,
 }: {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (email: string, password: string) => Promise<void>;
+  supabaseConfigured: boolean;
 }) => {
   const [formState, setFormState] = useState<LoginFormState>({
     email: "",
@@ -216,6 +218,8 @@ const LoginModal = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!supabaseConfigured) return;
+
     setFormState((prev) => ({ ...prev, loading: true, error: "" }));
 
     try {
@@ -258,6 +262,13 @@ const LoginModal = ({
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {!supabaseConfigured && (
+            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex gap-2">
+              <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <p className="text-yellow-700 text-sm">Supabase not configured</p>
+            </div>
+          )}
+
           {formState.error && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex gap-2">
               <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
@@ -276,7 +287,7 @@ const LoginModal = ({
                 setFormState((prev) => ({ ...prev, email: e.target.value }))
               }
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent"
-              disabled={formState.loading}
+              disabled={formState.loading || !supabaseConfigured}
               autoComplete="email"
               required
             />
@@ -293,7 +304,7 @@ const LoginModal = ({
                 setFormState((prev) => ({ ...prev, password: e.target.value }))
               }
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent"
-              disabled={formState.loading}
+              disabled={formState.loading || !supabaseConfigured}
               autoComplete="current-password"
               required
             />
@@ -301,7 +312,12 @@ const LoginModal = ({
 
           <button
             type="submit"
-            disabled={formState.loading || !formState.email || !formState.password}
+            disabled={
+              formState.loading ||
+              !formState.email ||
+              !formState.password ||
+              !supabaseConfigured
+            }
             className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {formState.loading ? (
@@ -344,13 +360,41 @@ const AdminModal = ({
   const [uploadingImages, setUploadingImages] = useState(false);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    setFormState((prev) => ({ ...prev, images: files }));
-    if (files.length !== 5) {
-      setError("Layout Safeguard: You must select exactly 5 images.");
-    } else {
-      setError("");
-    }
+    const newFiles = Array.from(e.target.files || []);
+    
+    setFormState((prev) => {
+      // Combine new files with existing ones, avoiding duplicates
+      const combined = [...prev.images];
+      
+      newFiles.forEach((newFile) => {
+        // Check if file already exists (by name and size)
+        const exists = combined.some(
+          (f) => f.name === newFile.name && f.size === newFile.size
+        );
+        if (!exists) {
+          combined.push(newFile);
+        }
+      });
+      
+      // Limit to 5 files maximum
+      return { ...prev, images: combined.slice(0, 5) };
+    });
+    
+    // Reset the file input value so the same file can be selected again if needed
+    e.currentTarget.value = '';
+  };
+
+  const getImageCountColor = () => {
+    if (formState.images.length === 5) return "text-emerald-600";
+    if (formState.images.length > 0) return "text-orange-600";
+    return "text-slate-600";
+  };
+
+  const removeImage = (index: number) => {
+    setFormState((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -416,7 +460,10 @@ const AdminModal = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-96 overflow-y-auto">
+        <form
+          onSubmit={handleSubmit}
+          className="p-6 space-y-4 max-h-96 overflow-y-auto"
+        >
           {error && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex gap-2">
               <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
@@ -547,15 +594,42 @@ const AdminModal = ({
             </label>
             <input
               type="file"
-              multiple
+              multiple={true}
               accept="image/*"
               onChange={handleImageChange}
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600"
               disabled={isLoading || uploadingImages}
             />
-            <p className="text-xs text-slate-600 mt-1">
-              Selected: {formState.images.length} image(s)
+            <p className={`text-sm mt-2 font-semibold ${getImageCountColor()}`}>
+              Images chosen: {formState.images.length} / 5
             </p>
+
+            {formState.images.length > 0 && (
+              <div className="mt-3 space-y-2">
+                <p className="text-xs text-slate-600 font-semibold">Selected files:</p>
+                <div className="space-y-2">
+                  {formState.images.map((file, index) => (
+                    <div
+                      key={`${file.name}-${file.size}-${index}`}
+                      className="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-200"
+                    >
+                      <span className="text-sm text-slate-700 truncate">
+                        {index + 1}. {file.name}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        disabled={isLoading || uploadingImages}
+                        className="ml-2 p-1 text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                        aria-label={`Remove ${file.name}`}
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex gap-3 pt-4">
@@ -569,11 +643,7 @@ const AdminModal = ({
             </button>
             <button
               type="submit"
-              disabled={
-                isLoading ||
-                uploadingImages ||
-                formState.images.length !== 5
-              }
+              disabled={isLoading || uploadingImages || formState.images.length !== 5}
               className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {uploadingImages ? (
@@ -736,6 +806,7 @@ export default function ForSale() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [isCreatingListing, setIsCreatingListing] = useState(false);
+  const [supabaseConfigured, setSupabaseConfigured] = useState(true);
 
   const filterCategories: FilterCategory[] = [
     "All Properties",
@@ -1132,6 +1203,7 @@ export default function ForSale() {
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
         onSubmit={handleLogin}
+        supabaseConfigured={supabaseConfigured}
       />
 
       <AdminModal

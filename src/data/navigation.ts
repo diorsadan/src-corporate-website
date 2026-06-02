@@ -2,6 +2,7 @@ export const primaryNav = [
   { path: '/', label: 'Home' },
   { path: '/about', label: 'About Us' },
   { path: '/properties', label: 'Our Properties' },
+  { path: '/for-sale', label: 'For Sale' },
   { path: '/resources', label: 'Investor Resources' },
   { path: '/contact', label: 'Contact Us' },
 ] as const;
