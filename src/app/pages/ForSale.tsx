@@ -57,6 +57,12 @@ type FilterCategory =
   | "Commercial & Industrial"
   | "Sold Assets";
 
+type PendingAdminAction = {
+  type: "delete" | "mark-sold";
+  propertyId: string;
+  propertyTitle: string;
+};
+
 const PROPERTY_TYPES = [
   "Raw Lot",
   "Residential Lot",
@@ -222,6 +228,89 @@ const SoldPropertyPlaceholder = ({ compact }: { compact?: boolean }) => {
       className={`${IMAGE_FRAME} flex items-center justify-center bg-slate-200`}
     >
       {label}
+    </div>
+  );
+};
+
+const ConfirmActionModal = ({
+  action,
+  isLoading,
+  onClose,
+  onConfirm,
+}: {
+  action: PendingAdminAction;
+  isLoading: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+}) => {
+  const isDelete = action.type === "delete";
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="w-full max-w-md rounded-xl border border-slate-200 bg-white shadow-xl"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="confirm-action-title"
+        aria-describedby="confirm-action-description"
+      >
+        <div className="p-6">
+          <h2
+            id="confirm-action-title"
+            className="text-xl font-bold text-slate-900"
+          >
+            {isDelete ? "Delete listing?" : "Mark as sold?"}
+          </h2>
+          <p
+            id="confirm-action-description"
+            className="mt-3 text-sm leading-relaxed text-slate-600"
+          >
+            {isDelete ? (
+              <>
+                Are you sure you want to delete{" "}
+                <span className="font-semibold text-slate-900">
+                  {action.propertyTitle}
+                </span>
+                ? This action cannot be undone.
+              </>
+            ) : (
+              <>
+                Are you sure you want to mark{" "}
+                <span className="font-semibold text-slate-900">
+                  {action.propertyTitle}
+                </span>{" "}
+                as sold? Listing images will be removed.
+              </>
+            )}
+          </p>
+
+          <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isLoading}
+              className="rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={onConfirm}
+              disabled={isLoading}
+              className={`rounded-lg px-5 py-2.5 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                isDelete
+                  ? "bg-red-600 hover:bg-red-700"
+                  : "bg-amber-600 hover:bg-amber-700"
+              }`}
+            >
+              {isDelete ? "Delete listing" : "Mark as sold"}
+            </button>
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 };
@@ -1040,6 +1129,9 @@ export default function ForSale() {
   const [isCreatingListing, setIsCreatingListing] = useState(false);
   const [selectedProperty, setSelectedProperty] =
     useState<PropertyListing | null>(null);
+  const [pendingAction, setPendingAction] = useState<PendingAdminAction | null>(
+    null,
+  );
 
   const filteredProperties = useMemo(() => {
     const filtered = properties.filter((p) => matchesFilter(p, selectedFilter));
@@ -1092,15 +1184,29 @@ export default function ForSale() {
     setIsAdmin(false);
   };
 
-  const handleDeleteProperty = async (id: string) => {
-    if (
-      !window.confirm(
-        "Are you sure you want to delete this property? This action cannot be undone.",
-      )
-    ) {
-      return;
-    }
+  const requestDeleteProperty = (id: string) => {
+    const property = properties.find((p) => p.id === id);
+    if (!property) return;
 
+    setPendingAction({
+      type: "delete",
+      propertyId: id,
+      propertyTitle: property.title,
+    });
+  };
+
+  const requestMarkAsSold = (id: string) => {
+    const property = properties.find((p) => p.id === id);
+    if (!property) return;
+
+    setPendingAction({
+      type: "mark-sold",
+      propertyId: id,
+      propertyTitle: property.title,
+    });
+  };
+
+  const handleDeleteProperty = async (id: string) => {
     try {
       setDeleting(id);
 
@@ -1158,6 +1264,19 @@ export default function ForSale() {
       alert("Failed to update property status");
     } finally {
       setDeleting(null);
+    }
+  };
+
+  const handleConfirmPendingAction = async () => {
+    if (!pendingAction) return;
+
+    const { type, propertyId } = pendingAction;
+    setPendingAction(null);
+
+    if (type === "delete") {
+      await handleDeleteProperty(propertyId);
+    } else {
+      await handleMarkAsSold(propertyId);
     }
   };
 
@@ -1358,8 +1477,8 @@ export default function ForSale() {
                   key={property.id}
                   property={property}
                   isAdmin={isAdmin}
-                  onDelete={handleDeleteProperty}
-                  onMarkAsSold={handleMarkAsSold}
+                  onDelete={requestDeleteProperty}
+                  onMarkAsSold={requestMarkAsSold}
                   isDeleting={deleting}
                   onOpenDetails={setSelectedProperty}
                 />
@@ -1368,6 +1487,19 @@ export default function ForSale() {
           )}
         </div>
       </section>
+
+      <AnimatePresence>
+        {pendingAction && (
+          <ConfirmActionModal
+            action={pendingAction}
+            isLoading={deleting !== null}
+            onClose={() => setPendingAction(null)}
+            onConfirm={() => {
+              void handleConfirmPendingAction();
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {showLoginModal && (
