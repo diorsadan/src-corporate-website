@@ -7,6 +7,7 @@ import { Leasing } from "./pages/Leasing";
 import { Resources } from "./pages/Resources";
 import { Contact } from "./pages/Contact";
 import TeamCredits from "./pages/Credits";
+import ForSale from "./pages/ForSale";
 import { NotFound } from "./pages/NotFound";
 
 export const router = createBrowserRouter([
@@ -17,6 +18,7 @@ export const router = createBrowserRouter([
       { index: true, Component: Home },
       { path: "about", Component: About },
       { path: "properties", Component: Properties },
+      { path: "for-sale", Component: ForSale },
       { path: "leasing", Component: Leasing },
       { path: "resources", Component: Resources },
       { path: "contact", Component: Contact },
