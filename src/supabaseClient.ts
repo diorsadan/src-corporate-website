@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
@@ -18,20 +19,16 @@ if (supabaseUrl && supabaseAnonKey) {
     select: () => mockQuery,
   };
 
-  // For testing, create a mock session
-  const mockSession = {
-    user: { id: "test-user-123", email: "test@example.com" },
-    access_token: "mock-token",
-    token_type: "Bearer",
-  };
-
-  // Create a minimal mock to prevent crashes
+  // Create a minimal mock to prevent crashes (no auto-login)
   supabase = {
     auth: {
       getSession: () =>
-        Promise.resolve({ data: { session: mockSession }, error: null }),
+        Promise.resolve({ data: { session: null }, error: null }),
       signInWithPassword: () =>
-        Promise.resolve({ data: { session: mockSession }, error: null }),
+        Promise.resolve({
+          data: { session: null },
+          error: { message: "Supabase is not configured" },
+        }),
       signOut: () => Promise.resolve({ error: null }),
     },
     from: () => ({

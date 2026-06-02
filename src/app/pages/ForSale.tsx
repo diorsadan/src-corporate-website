@@ -1,20 +1,24 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ChevronLeft,
-  ChevronRight,
   LogOut,
   Trash2,
   Plus,
   X,
   AlertCircle,
   Loader2,
+  MapPin,
+  Mail,
+  Ruler,
+  ExternalLink,
 } from "lucide-react";
 import imageCompression from "browser-image-compression";
 import { supabase } from "@/supabaseClient";
-import { FadeIn, StaggerContainer, StaggerItem } from "@/components/animations";
+import { PropertyImageCarousel } from "@/components/common/PropertyImageCarousel";
+import { FADE_IN_UP, VIEWPORT_ONCE } from "@/constants/animations";
 
 interface PropertyListing {
   id: string;
@@ -68,146 +72,168 @@ const PROPERTY_TYPES = [
   "Resort Property",
   "Farm Property",
   "Mixed-Use Property",
+] as const;
+
+const FILTER_CATEGORIES: FilterCategory[] = [
+  "All Properties",
+  "Lots & Land",
+  "Residential",
+  "Commercial & Industrial",
+  "Sold Assets",
 ];
 
-const getPropertyCategory = (type: string, status: string): string[] => {
-  const categories: string[] = [];
+const LOTS_AND_LAND_TYPES = new Set([
+  "Raw Lot",
+  "Residential Lot",
+  "Commercial Lot",
+  "Agricultural Land",
+]);
 
-  const lotsAndLand = [
-    "Raw Lot",
-    "Residential Lot",
-    "Commercial Lot",
-    "Agricultural Land",
-  ];
-  const residential = [
-    "House and Lot",
-    "Townhouse",
-    "Condominium",
-    "Apartment Building",
-  ];
-  const commercialIndustrial = [
-    "Commercial Building",
-    "Office Space",
-    "Warehouse",
-    "Resort Property",
-    "Farm Property",
-    "Mixed-Use Property",
-  ];
+const RESIDENTIAL_TYPES = new Set([
+  "House and Lot",
+  "Townhouse",
+  "Condominium",
+  "Apartment Building",
+]);
 
-  if (lotsAndLand.includes(type)) categories.push("Lots & Land");
-  if (residential.includes(type)) categories.push("Residential");
-  if (commercialIndustrial.includes(type))
-    categories.push("Commercial & Industrial");
-  if (status === "Sold") categories.push("Sold Assets");
+const COMMERCIAL_INDUSTRIAL_TYPES = new Set([
+  "Commercial Building",
+  "Office Space",
+  "Warehouse",
+  "Resort Property",
+  "Farm Property",
+  "Mixed-Use Property",
+]);
 
-  return categories;
-};
+const MODAL_SPRING = { type: "spring" as const, stiffness: 300, damping: 22 };
 
-const sortProperties = (properties: PropertyListing[]): PropertyListing[] => {
+const GRID_WRAPPER =
+  "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12";
+
+const GRID_COLUMNS =
+  "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8";
+
+const CARD_SHELL =
+  "bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full overflow-hidden";
+
+const IMAGE_FRAME = "aspect-[4/3] w-full overflow-hidden relative";
+
+const SUPABASE_CONFIGURED = Boolean(
+  import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY,
+);
+
+function sortProperties(properties: PropertyListing[]): PropertyListing[] {
   const active = properties
     .filter((p) => p.status === "Active")
     .sort(
       (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     );
   const sold = properties
     .filter((p) => p.status === "Sold")
     .sort(
       (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     );
-
   return [...active, ...sold];
-};
+}
 
-const PropertyImageCarousel = ({
-  images,
-  title,
-}: {
-  images: string[];
-  title: string;
-}) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+function matchesFilter(
+  property: PropertyListing,
+  category: FilterCategory,
+): boolean {
+  switch (category) {
+    case "All Properties":
+      return property.status !== "Sold";
+    case "Lots & Land":
+      return LOTS_AND_LAND_TYPES.has(property.property_type);
+    case "Residential":
+      return RESIDENTIAL_TYPES.has(property.property_type);
+    case "Commercial & Industrial":
+      return COMMERCIAL_INDUSTRIAL_TYPES.has(property.property_type);
+    case "Sold Assets":
+      return property.status === "Sold";
+    default:
+      return true;
+  }
+}
 
-  const handlePrev = () => {
-    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
-  };
+function extractStoragePaths(imageUrls: string[]): string[] {
+  return imageUrls
+    .map((url) => {
+      try {
+        const pathname = new URL(url).pathname;
+        const bucketMarker = "/property-images/";
+        const bucketIndex = pathname.indexOf(bucketMarker);
+        if (bucketIndex !== -1) {
+          return decodeURIComponent(
+            pathname.slice(bucketIndex + bucketMarker.length),
+          );
+        }
+        const segments = pathname.split("/").filter(Boolean);
+        return segments.length > 0
+          ? decodeURIComponent(segments[segments.length - 1])
+          : "";
+      } catch {
+        return "";
+      }
+    })
+    .filter((path) => path.length > 0);
+}
 
-  const handleNext = () => {
-    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
-  };
+async function purgePropertyImages(imageUrls: string[]): Promise<void> {
+  const paths = extractStoragePaths(imageUrls);
+  if (paths.length === 0) return;
 
-  return (
-    <div className="relative w-full h-64 sm:h-72 md:h-80 bg-slate-200 rounded-lg overflow-hidden group">
-      <AnimatePresence mode="wait">
-        <motion.img
-          key={currentIndex}
-          src={images[currentIndex]}
-          alt={`${title} - Image ${currentIndex + 1}`}
-          className="w-full h-full object-cover"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-        />
-      </AnimatePresence>
+  const { error } = await supabase.storage.from("property-images").remove(paths);
+  if (error) {
+    console.warn("Warning deleting storage files:", error);
+  }
+}
 
-      {images.length > 1 && (
-        <>
-          <button
-            onClick={handlePrev}
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
-            aria-label="Previous image"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button
-            onClick={handleNext}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
-            aria-label="Next image"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
+function formatPhpPrice(price: number): string {
+  return new Intl.NumberFormat("en-PH", {
+    style: "currency",
+    currency: "PHP",
+    minimumFractionDigits: 0,
+  }).format(price);
+}
 
-          <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
-            {images.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setCurrentIndex(idx)}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  idx === currentIndex
-                    ? "bg-white"
-                    : "bg-white/50 hover:bg-white/75"
-                }`}
-                aria-label={`Go to image ${idx + 1}`}
-              />
-            ))}
-          </div>
-        </>
+const SoldPropertyPlaceholder = ({ compact }: { compact?: boolean }) => {
+  const label = (
+    <div className="text-center">
+      <div
+        className={`font-black text-slate-400 tracking-widest ${
+          compact ? "text-3xl" : "text-4xl"
+        }`}
+      >
+        SOLD
+      </div>
+      {!compact && (
+        <p className="text-slate-500 text-sm mt-2">This property has been sold</p>
       )}
     </div>
   );
-};
 
-const SoldPropertyPlaceholder = () => (
-  <div className="w-full h-64 sm:h-72 md:h-80 bg-slate-300 rounded-lg flex items-center justify-center">
-    <div className="text-center">
-      <div className="text-5xl font-black text-slate-400 opacity-40">SOLD</div>
-      <p className="text-slate-500 text-sm mt-2">This property has been sold</p>
+  if (compact) return label;
+
+  return (
+    <div
+      className={`${IMAGE_FRAME} flex items-center justify-center bg-slate-200`}
+    >
+      {label}
     </div>
-  </div>
-);
+  );
+};
 
 const LoginModal = ({
   isOpen,
   onClose,
   onSubmit,
-  supabaseConfigured,
 }: {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (email: string, password: string) => Promise<void>;
-  supabaseConfigured: boolean;
 }) => {
   const [formState, setFormState] = useState<LoginFormState>({
     email: "",
@@ -216,9 +242,20 @@ const LoginModal = ({
     loading: false,
   });
 
+  useEffect(() => {
+    if (isOpen) {
+      setFormState({
+        email: "",
+        password: "",
+        error: "",
+        loading: false,
+      });
+    }
+  }, [isOpen]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!supabaseConfigured) return;
+    if (!SUPABASE_CONFIGURED) return;
 
     setFormState((prev) => ({ ...prev, loading: true, error: "" }));
 
@@ -231,11 +268,13 @@ const LoginModal = ({
         loading: false,
       });
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Authentication failed";
       setFormState((prev) => ({
         ...prev,
         loading: false,
-        error: error.message || "Authentication failed",
+        error: message,
       }));
     }
   };
@@ -253,16 +292,18 @@ const LoginModal = ({
         <div className="p-6 border-b border-slate-200 flex justify-between items-center">
           <h2 className="text-xl font-bold text-slate-900">Staff Login</h2>
           <button
+            type="button"
             onClick={onClose}
             disabled={formState.loading}
             className="text-slate-500 hover:text-slate-700 disabled:opacity-50"
+            aria-label="Close login"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {!supabaseConfigured && (
+          {!SUPABASE_CONFIGURED && (
             <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex gap-2">
               <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
               <p className="text-yellow-700 text-sm">Supabase not configured</p>
@@ -277,34 +318,42 @@ const LoginModal = ({
           )}
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
+            <label
+              htmlFor="staff-email"
+              className="block text-sm font-semibold text-slate-700 mb-2"
+            >
               Email
             </label>
             <input
+              id="staff-email"
               type="email"
               value={formState.email}
               onChange={(e) =>
                 setFormState((prev) => ({ ...prev, email: e.target.value }))
               }
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent"
-              disabled={formState.loading || !supabaseConfigured}
+              disabled={formState.loading || !SUPABASE_CONFIGURED}
               autoComplete="email"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">
+            <label
+              htmlFor="staff-password"
+              className="block text-sm font-semibold text-slate-700 mb-2"
+            >
               Password
             </label>
             <input
+              id="staff-password"
               type="password"
               value={formState.password}
               onChange={(e) =>
                 setFormState((prev) => ({ ...prev, password: e.target.value }))
               }
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent"
-              disabled={formState.loading || !supabaseConfigured}
+              disabled={formState.loading || !SUPABASE_CONFIGURED}
               autoComplete="current-password"
               required
             />
@@ -316,7 +365,7 @@ const LoginModal = ({
               formState.loading ||
               !formState.email ||
               !formState.password ||
-              !supabaseConfigured
+              !SUPABASE_CONFIGURED
             }
             className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
@@ -356,32 +405,42 @@ const AdminModal = ({
     images: [],
   });
 
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState("");
   const [uploadingImages, setUploadingImages] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setFormState({
+        title: "",
+        location: "",
+        area_size: "",
+        price: "",
+        description: "",
+        property_type: "",
+        images: [],
+      });
+      setError("");
+      setUploadingImages(false);
+    }
+  }, [isOpen]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newFiles = Array.from(e.target.files || []);
-    
+
     setFormState((prev) => {
-      // Combine new files with existing ones, avoiding duplicates
       const combined = [...prev.images];
-      
       newFiles.forEach((newFile) => {
-        // Check if file already exists (by name and size)
         const exists = combined.some(
-          (f) => f.name === newFile.name && f.size === newFile.size
+          (f) => f.name === newFile.name && f.size === newFile.size,
         );
         if (!exists) {
           combined.push(newFile);
         }
       });
-      
-      // Limit to 5 files maximum
       return { ...prev, images: combined.slice(0, 5) };
     });
-    
-    // Reset the file input value so the same file can be selected again if needed
-    e.currentTarget.value = '';
+
+    e.currentTarget.value = "";
   };
 
   const getImageCountColor = () => {
@@ -430,8 +489,10 @@ const AdminModal = ({
       });
       setError("");
       onClose();
-    } catch (err: any) {
-      setError(err.message || "Failed to create listing");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to create listing";
+      setError(message);
     } finally {
       setUploadingImages(false);
     }
@@ -452,9 +513,11 @@ const AdminModal = ({
             Add Property Listing
           </h2>
           <button
+            type="button"
             onClick={onClose}
             disabled={isLoading || uploadingImages}
             className="text-slate-500 hover:text-slate-700 disabled:opacity-50"
+            aria-label="Close add property form"
           >
             <X className="w-5 h-5" />
           </button>
@@ -462,7 +525,7 @@ const AdminModal = ({
 
         <form
           onSubmit={handleSubmit}
-          className="p-6 space-y-4 max-h-96 overflow-y-auto"
+          className="p-6 space-y-4 max-h-[70vh] overflow-y-auto"
         >
           {error && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex gap-2">
@@ -487,7 +550,7 @@ const AdminModal = ({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
                 Location *
@@ -527,7 +590,7 @@ const AdminModal = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
                 Price (PHP) *
@@ -606,7 +669,9 @@ const AdminModal = ({
 
             {formState.images.length > 0 && (
               <div className="mt-3 space-y-2">
-                <p className="text-xs text-slate-600 font-semibold">Selected files:</p>
+                <p className="text-xs text-slate-600 font-semibold">
+                  Selected files:
+                </p>
                 <div className="space-y-2">
                   {formState.images.map((file, index) => (
                     <div
@@ -643,7 +708,9 @@ const AdminModal = ({
             </button>
             <button
               type="submit"
-              disabled={isLoading || uploadingImages || formState.images.length !== 5}
+              disabled={
+                isLoading || uploadingImages || formState.images.length !== 5
+              }
               className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {uploadingImages ? (
@@ -662,159 +729,322 @@ const AdminModal = ({
   );
 };
 
+const PropertyDetailModal = ({
+  property,
+  onClose,
+  onInquire,
+}: {
+  property: PropertyListing;
+  onClose: () => void;
+  onInquire: () => void;
+}) => {
+  const isSold = property.status === "Sold";
+  const galleryImages = property.image_urls.length > 0 ? property.image_urls : [];
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
+  return (
+    <motion.div
+      key="property-detail-backdrop"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25, ease: "easeInOut" }}
+      className="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-6 md:p-8"
+      onClick={onClose}
+      role="presentation"
+    >
+      <motion.div
+        key={property.id}
+        initial={{ y: 40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: 40, opacity: 0 }}
+        transition={MODAL_SPRING}
+        className="relative bg-white w-full max-w-6xl h-[min(92vh,900px)] rounded-2xl overflow-hidden shadow-2xl grid grid-cols-1 lg:grid-cols-2"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="for-sale-modal-title"
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-4 right-4 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-white/95 text-slate-700 shadow-lg hover:bg-white hover:text-slate-900 transition-colors"
+          aria-label="Close property details"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <div className="relative w-full h-full min-h-[280px] lg:min-h-0 bg-slate-900">
+          {isSold || galleryImages.length === 0 ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-slate-200">
+              <SoldPropertyPlaceholder compact />
+            </div>
+          ) : (
+            <div className="absolute inset-0">
+              <PropertyImageCarousel
+                images={galleryImages}
+                alt={property.title}
+                heightClass="h-full"
+                autoPlay
+                autoPlayIntervalMs={3500}
+                enableLightbox={false}
+                enablePauseControl={true}
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="p-6 md:p-8 overflow-y-auto flex flex-col max-h-[50vh] md:max-h-[85vh]">
+          <span
+            className={`inline-block text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-4 w-fit ${
+              isSold
+                ? "bg-slate-200 text-slate-600"
+                : "bg-primary/10 text-primary"
+            }`}
+          >
+            {property.property_type}
+          </span>
+
+          <h2
+            id="for-sale-modal-title"
+            className="text-2xl md:text-3xl font-black text-gray-900 mb-3 leading-tight pr-10"
+          >
+            {property.title}
+          </h2>
+
+          <p className="text-2xl md:text-3xl font-extrabold text-[#2e7d5c] mb-4">
+            {formatPhpPrice(property.price)}
+          </p>
+
+          <div className="flex items-start gap-2 mb-6 text-gray-600">
+            <MapPin className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+            <p className="font-semibold text-gray-900">{property.location}</p>
+          </div>
+
+          <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 mb-6">
+            <div className="flex items-center gap-2 text-primary mb-1">
+              <Ruler className="w-4 h-4" />
+              <span className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                Area Size
+              </span>
+            </div>
+            <p className="text-lg font-bold text-gray-900">
+              {property.area_size} sqm
+            </p>
+          </div>
+
+          <div className="mb-6 flex-1 min-h-0">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-3">
+              Technical Description
+            </h3>
+            <div className="max-h-48 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-4 text-base text-gray-700 leading-relaxed">
+              {property.description?.trim()
+                ? property.description
+                : "No detailed description provided for this listing."}
+            </div>
+          </div>
+
+          <div className="pt-4 mt-auto border-t border-slate-100 shrink-0">
+            <button
+              type="button"
+              onClick={onInquire}
+              className="w-full bg-[#2e7d5c] hover:bg-[#256b4d] text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors duration-200 shadow-lg"
+            >
+              <Mail className="w-5 h-5" />
+              Send Inquiry
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
 const PropertyCard = ({
   property,
   isAdmin,
   onDelete,
   onMarkAsSold,
   isDeleting,
+  onOpenDetails,
 }: {
   property: PropertyListing;
   isAdmin: boolean;
   onDelete: (id: string) => Promise<void>;
   onMarkAsSold: (id: string) => Promise<void>;
   isDeleting: string | null;
+  onOpenDetails: (property: PropertyListing) => void;
 }) => {
-  const formattedPrice = new Intl.NumberFormat("en-PH", {
-    style: "currency",
-    currency: "PHP",
-    minimumFractionDigits: 0,
-  }).format(property.price);
-
+  const [isCarouselPaused, setIsCarouselPaused] = useState(false);
   const isSold = property.status === "Sold";
+  const hasImages = property.image_urls.length > 0;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5 }}
-      className={`rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow ${
-        isSold ? "opacity-75" : ""
-      }`}
+    <article
+      className={`group/card ${CARD_SHELL} ${isSold ? "opacity-95" : ""}`}
+      onMouseEnter={() => setIsCarouselPaused(true)}
+      onMouseLeave={() => setIsCarouselPaused(false)}
     >
-      <div className="bg-white">
-        {isSold ? (
-          <SoldPropertyPlaceholder />
+      <div className={`${IMAGE_FRAME} bg-gray-100 shrink-0`}>
+        {isSold || !hasImages ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-slate-200">
+            <span className="text-3xl font-black text-slate-400 tracking-widest">
+              SOLD
+            </span>
+          </div>
         ) : (
-          <PropertyImageCarousel images={property.image_urls} title={property.title} />
+          <div className="absolute inset-0 [&_img]:object-cover [&_img]:w-full [&_img]:h-full">
+            <PropertyImageCarousel
+              images={property.image_urls}
+              alt={property.title}
+              heightClass="h-full"
+              isolateControls
+              parentGroupName="card"
+              autoPlay={!isCarouselPaused}
+              autoPlayIntervalMs={3500}
+              enableLightbox={false}
+              enablePauseControl={false}
+            />
+          </div>
         )}
+        <div
+          className={`absolute top-3 left-3 z-20 pointer-events-none px-2.5 py-1 text-xs font-bold rounded-md text-white shadow-sm ${
+            isSold ? "bg-slate-500" : "bg-[#2e7d5c]"
+          }`}
+        >
+          {isSold ? "Sold" : "Active"}
+        </div>
+      </div>
 
-        <div className="p-5">
-          <div className="flex justify-between items-start mb-2">
-            <h3 className={`text-xl font-extrabold ${
-              isSold ? "text-slate-500" : "text-slate-900"
-            }`}>
-              {property.title}
-            </h3>
-            {property.status === "Active" && (
-              <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded">
-                Active
-              </span>
-            )}
-          </div>
+      <div className="p-6 flex flex-col flex-grow">
+        <span className="text-xs font-bold tracking-wider text-slate-500 uppercase mb-2">
+          {property.property_type}
+        </span>
 
-          <p className={`text-sm mb-1 ${
-            isSold ? "text-slate-400" : "text-slate-600"
-          }`}>
-            📍 {property.location}
+        <h3
+          className={`text-xl font-bold line-clamp-1 mb-1 ${
+            isSold ? "text-slate-500" : "text-slate-900"
+          }`}
+        >
+          {property.title}
+        </h3>
+
+        <p
+          className={`text-sm text-slate-500 flex items-center gap-1 mb-4 ${
+            isSold ? "opacity-80" : ""
+          }`}
+        >
+          <MapPin className="w-4 h-4 shrink-0 text-[#2e7d5c]" aria-hidden />
+          <span className="line-clamp-1">{property.location}</span>
+        </p>
+
+        <div className="mb-3">
+          <p
+            className={`text-xl font-extrabold ${
+              isSold ? "text-slate-400" : "text-[#2e7d5c]"
+            }`}
+          >
+            {formatPhpPrice(property.price)}
           </p>
-
-          <div className="flex gap-2 mb-3 flex-wrap">
-            <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
-              isSold
-                ? "bg-slate-200 text-slate-500"
-                : "bg-slate-100 text-slate-700"
-            }`}>
-              {property.property_type}
-            </span>
-            <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
-              isSold
-                ? "bg-slate-200 text-slate-500"
-                : "bg-slate-100 text-slate-700"
-            }`}>
-              {property.area_size} sqm
-            </span>
-          </div>
-
-          <p className={`text-sm mb-4 line-clamp-2 ${
-            isSold ? "text-slate-400" : "text-slate-600"
-          }`}>
-            {property.description}
+          <p className="text-sm font-semibold text-slate-500 mt-0.5">
+            {property.area_size.toLocaleString()} sqm
           </p>
+        </div>
 
-          <div className="flex justify-between items-center mb-4">
-            <span className={`text-lg font-bold ${
-              isSold ? "text-slate-500" : "text-emerald-600"
-            }`}>
-              {formattedPrice}
-            </span>
-          </div>
+        <p
+          className={`text-sm text-slate-600 line-clamp-2 mb-4 flex-grow ${
+            isSold ? "text-slate-400" : ""
+          }`}
+        >
+          {property.description?.trim()
+            ? property.description
+            : "No description available for this listing."}
+        </p>
+
+        <div className="mt-auto">
+          <button
+            type="button"
+            onClick={() => onOpenDetails(property)}
+            className="w-full border border-slate-200 bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors duration-200 text-sm"
+          >
+            View Details
+            <ExternalLink className="w-3.5 h-3.5" />
+          </button>
 
           {isAdmin && (
-            <div className="flex gap-2">
+            <div
+              className="mt-4 pt-4 border-t border-slate-50 flex gap-2"
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+              role="presentation"
+            >
               {property.status === "Active" && (
                 <button
+                  type="button"
                   onClick={() => onMarkAsSold(property.id)}
                   disabled={isDeleting === property.id}
-                  className="flex-1 py-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center justify-center gap-1"
+                  className="flex-1 py-2 text-xs font-medium text-slate-600 border border-slate-200 rounded-lg hover:bg-amber-50 hover:text-amber-800 hover:border-amber-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                 >
                   {isDeleting === property.id ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    "Mark as Sold"
-                  )}
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : null}
+                  Mark as Sold
                 </button>
               )}
               <button
+                type="button"
                 onClick={() => onDelete(property.id)}
                 disabled={isDeleting === property.id}
-                className="flex-1 py-2 bg-red-100 hover:bg-red-200 text-red-800 font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 text-sm"
+                className="flex-1 py-2 text-xs font-medium text-slate-600 border border-slate-200 rounded-lg hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
               >
                 {isDeleting === property.id ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Deleting...
-                  </>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 ) : (
-                  <>
-                    <Trash2 className="w-4 h-4" />
-                    Delete
-                  </>
+                  <Trash2 className="w-3.5 h-3.5" />
                 )}
+                Delete Listing
               </button>
             </div>
           )}
         </div>
       </div>
-    </motion.div>
+    </article>
   );
 };
 
 export default function ForSale() {
+  const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [properties, setProperties] = useState<PropertyListing[]>([]);
-  const [filteredProperties, setFilteredProperties] = useState<PropertyListing[]>([]);
-  const [selectedFilter, setSelectedFilter] = useState<FilterCategory>(
-    "All Properties"
-  );
+  const [selectedFilter, setSelectedFilter] =
+    useState<FilterCategory>("All Properties");
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [isCreatingListing, setIsCreatingListing] = useState(false);
-  const [supabaseConfigured, setSupabaseConfigured] = useState(true);
+  const [selectedProperty, setSelectedProperty] =
+    useState<PropertyListing | null>(null);
 
-  const filterCategories: FilterCategory[] = [
-    "All Properties",
-    "Lots & Land",
-    "Residential",
-    "Commercial & Industrial",
-    "Sold Assets",
-  ];
+  const filteredProperties = useMemo(() => {
+    const filtered = properties.filter((p) => matchesFilter(p, selectedFilter));
+    return sortProperties(filtered);
+  }, [properties, selectedFilter]);
 
   const checkAdminStatus = useCallback(async () => {
     try {
@@ -837,50 +1067,13 @@ export default function ForSale() {
       if (error) throw error;
 
       const typedData = (data || []) as PropertyListing[];
-      const sorted = sortProperties(typedData);
-      setProperties(sorted);
-      applyFilter("All Properties", sorted);
+      setProperties(sortProperties(typedData));
     } catch (error) {
       console.error("Error fetching properties:", error);
     } finally {
       setLoading(false);
     }
   }, []);
-
-  const applyFilter = (category: FilterCategory, propertiesToFilter: PropertyListing[]) => {
-    let filtered: PropertyListing[] = [];
-
-    switch (category) {
-      case "All Properties":
-        filtered = propertiesToFilter;
-        break;
-      case "Lots & Land":
-        filtered = propertiesToFilter.filter((p) =>
-          getPropertyCategory(p.property_type, p.status).includes("Lots & Land")
-        );
-        break;
-      case "Residential":
-        filtered = propertiesToFilter.filter((p) =>
-          getPropertyCategory(p.property_type, p.status).includes("Residential")
-        );
-        break;
-      case "Commercial & Industrial":
-        filtered = propertiesToFilter.filter((p) =>
-          getPropertyCategory(p.property_type, p.status).includes("Commercial & Industrial")
-        );
-        break;
-      case "Sold Assets":
-        filtered = propertiesToFilter.filter((p) => p.status === "Sold");
-        break;
-    }
-
-    setFilteredProperties(sortProperties(filtered));
-  };
-
-  const handleFilterChange = (category: FilterCategory) => {
-    setSelectedFilter(category);
-    applyFilter(category, properties);
-  };
 
   const handleLogin = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -900,47 +1093,23 @@ export default function ForSale() {
   };
 
   const handleDeleteProperty = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this property? This action cannot be undone."))
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this property? This action cannot be undone.",
+      )
+    ) {
       return;
+    }
 
     try {
       setDeleting(id);
 
       const property = properties.find((p) => p.id === id);
-      
-      // Step A: If the listing is Active and has images, delete them from storage
-      if (property && property.image_urls && property.image_urls.length > 0) {
-        try {
-          const filePaths = property.image_urls
-            .map((url) => {
-              try {
-                const urlObj = new URL(url);
-                const pathname = urlObj.pathname;
-                // Extract filename from storage path
-                const parts = pathname.split("/");
-                return parts[parts.length - 1] || "";
-              } catch {
-                return "";
-              }
-            })
-            .filter((p) => p.length > 0);
 
-          if (filePaths.length > 0) {
-            const { error: storageError } = await supabase.storage
-              .from("property-images")
-              .remove(filePaths);
-
-            if (storageError) {
-              console.warn("Warning deleting storage files:", storageError);
-              // Continue with DB deletion even if storage cleanup fails
-            }
-          }
-        } catch (storageErr) {
-          console.warn("Error processing storage cleanup:", storageErr);
-        }
+      if (property && property.image_urls.length > 0) {
+        await purgePropertyImages(property.image_urls);
       }
 
-      // Step B: Delete the property row from the database
       const { error: deleteError } = await supabase
         .from("sale_properties")
         .delete()
@@ -948,10 +1117,7 @@ export default function ForSale() {
 
       if (deleteError) throw deleteError;
 
-      // Step C: Refresh the UI
-      const updatedProperties = properties.filter((p) => p.id !== id);
-      setProperties(updatedProperties);
-      applyFilter(selectedFilter, updatedProperties);
+      setProperties((prev) => prev.filter((p) => p.id !== id));
     } catch (error) {
       console.error("Error deleting property:", error);
       alert("Failed to delete property");
@@ -965,40 +1131,12 @@ export default function ForSale() {
       setDeleting(id);
 
       const property = properties.find((p) => p.id === id);
-      
-      // Extract and delete image files from storage
-      if (property && property.image_urls && property.image_urls.length > 0) {
-        try {
-          const filePaths = property.image_urls
-            .map((url) => {
-              try {
-                const urlObj = new URL(url);
-                const pathname = urlObj.pathname;
-                // Extract filename from storage path
-                const parts = pathname.split("/");
-                return parts[parts.length - 1] || "";
-              } catch {
-                return "";
-              }
-            })
-            .filter((p) => p.length > 0);
+      if (!property) return;
 
-          if (filePaths.length > 0) {
-            const { error: storageError } = await supabase.storage
-              .from("property-images")
-              .remove(filePaths);
-
-            if (storageError) {
-              console.warn("Warning deleting storage files:", storageError);
-              // Continue with DB update even if storage cleanup fails
-            }
-          }
-        } catch (storageErr) {
-          console.warn("Error processing storage cleanup:", storageErr);
-        }
+      if (property.image_urls.length > 0) {
+        await purgePropertyImages(property.image_urls);
       }
 
-      // Update database: set status to Sold and clear image_urls
       const { error: updateError } = await supabase
         .from("sale_properties")
         .update({ status: "Sold", image_urls: [] })
@@ -1006,20 +1144,15 @@ export default function ForSale() {
 
       if (updateError) throw updateError;
 
-      // Update local state
-      const updatedProperty = {
-        ...property!,
-        status: "Sold" as const,
-        image_urls: [],
-      };
-      
-      const updatedProperties = properties.map((p) =>
-        p.id === id ? updatedProperty : p
+      setProperties((prev) =>
+        sortProperties(
+          prev.map((p) =>
+            p.id === id
+              ? { ...p, status: "Sold" as const, image_urls: [] }
+              : p,
+          ),
+        ),
       );
-
-      const sorted = sortProperties(updatedProperties);
-      setProperties(sorted);
-      applyFilter(selectedFilter, sorted);
     } catch (error) {
       console.error("Error marking property as sold:", error);
       alert("Failed to update property status");
@@ -1034,58 +1167,46 @@ export default function ForSale() {
 
       const compressedImages: string[] = [];
 
-      // Sequentially compress and upload each of the 5 images
       for (let i = 0; i < formData.images.length; i++) {
         const file = formData.images[i];
-        
-        try {
-          // Compress the image
-          const compressedFile = await imageCompression(file, {
-            maxSizeMB: 0.5,
-            maxWidthOrHeight: 1920,
-          });
 
-          // Generate unique filename
-          const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.jpg`;
-          
-          // Upload to Supabase storage
-          const { data, error: uploadError } = await supabase.storage
-            .from("property-images")
-            .upload(fileName, compressedFile);
+        const compressedFile = await imageCompression(file, {
+          maxSizeMB: 0.5,
+          maxWidthOrHeight: 1920,
+        });
 
-          if (uploadError) {
-            throw new Error(`Failed to upload image ${i + 1}: ${uploadError.message}`);
-          }
+        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 11)}.jpg`;
 
-          // Get public URL
-          const { data: publicUrlData } = supabase.storage
-            .from("property-images")
-            .getPublicUrl(fileName);
+        const { error: uploadError } = await supabase.storage
+          .from("property-images")
+          .upload(fileName, compressedFile);
 
-          compressedImages.push(publicUrlData.publicUrl);
-        } catch (imgError) {
-          console.error(`Error processing image ${i + 1}:`, imgError);
-          throw imgError;
+        if (uploadError) {
+          throw new Error(
+            `Failed to upload image ${i + 1}: ${uploadError.message}`,
+          );
         }
+
+        const { data: publicUrlData } = supabase.storage
+          .from("property-images")
+          .getPublicUrl(fileName);
+
+        compressedImages.push(publicUrlData.publicUrl);
       }
 
-      // Insert the property record with all 5 compressed image URLs
-      const { error: insertError } = await supabase
-        .from("sale_properties")
-        .insert({
-          title: formData.title,
-          location: formData.location,
-          area_size: parseFloat(formData.area_size),
-          price: parseFloat(formData.price),
-          description: formData.description,
-          property_type: formData.property_type,
-          status: "Active",
-          image_urls: compressedImages,
-        });
+      const { error: insertError } = await supabase.from("sale_properties").insert({
+        title: formData.title,
+        location: formData.location,
+        area_size: parseFloat(formData.area_size),
+        price: parseFloat(formData.price),
+        description: formData.description,
+        property_type: formData.property_type,
+        status: "Active",
+        image_urls: compressedImages,
+      });
 
       if (insertError) throw insertError;
 
-      // Refresh the properties list
       await fetchProperties();
     } catch (error) {
       console.error("Error creating listing:", error);
@@ -1095,95 +1216,143 @@ export default function ForSale() {
     }
   };
 
+  const handleInquire = () => {
+    setSelectedProperty(null);
+    navigate("/contact");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   useEffect(() => {
     checkAdminStatus();
     fetchProperties();
   }, [checkAdminStatus, fetchProperties]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <FadeIn>
-          <div className="flex justify-between items-start sm:items-center mb-8 gap-4 flex-col sm:flex-row">
+    <div>
+      <section className="relative w-full overflow-hidden flex items-center justify-center min-h-[22rem] sm:min-h-[26rem] md:min-h-[28rem] pt-20 sm:pt-24 md:pt-28 pb-16 md:pb-20">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          className="absolute inset-0 w-full h-full object-cover"
+          aria-hidden
+        >
+          <source src="/videos/for-sale.mp4" type="video/mp4" />
+        </video>
+
+        <div
+          className="absolute inset-0 bg-emerald-950/60 backdrop-brightness-[0.8]"
+          aria-hidden
+        />
+
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center"
+        >
+          <h1
+            className="text-4xl sm:text-5xl md:text-6xl text-white mb-4 tracking-tight"
+            style={{ fontWeight: 700 }}
+          >
+            Properties for Sale
+          </h1>
+          <p className="text-lg sm:text-xl text-gray-100 max-w-2xl mx-auto font-light">
+            Discover premium real estate opportunities across SOCCSKSARGEN
+          </p>
+        </motion.div>
+      </section>
+
+      <section className="bg-white">
+        <div className={GRID_WRAPPER}>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={VIEWPORT_ONCE}
+            variants={FADE_IN_UP}
+            className="mb-10 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between"
+          >
             <div>
-              <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-2">
-                Properties for Sale
-              </h1>
-              <p className="text-slate-600">
-                Discover premium real estate opportunities in SOCCSKSARGEN
+              <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-4">
+                Available Listings
+              </h2>
+              <p className="text-lg text-gray-600 max-w-3xl">
+                Browse lots, residential, and commercial assets across
+                SOCCSKSARGEN. Active listings appear first; sold assets are
+                grouped at the bottom of each view.
               </p>
             </div>
 
-            <div className="flex gap-3 flex-wrap justify-end">
+            <div className="flex flex-row items-center justify-end gap-3 shrink-0">
               {isAdmin ? (
                 <>
                   <button
+                    type="button"
                     onClick={() => setShowAdminModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-colors"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#2e7d5c] hover:bg-[#256b4d] text-white text-sm font-semibold rounded-lg transition-colors shadow-sm whitespace-nowrap"
                   >
-                    <Plus className="w-5 h-5" />
+                    <Plus className="w-4 h-4" />
                     Add New Property
                   </button>
                   <button
+                    type="button"
                     onClick={handleLogout}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
                   >
-                    <LogOut className="w-5 h-5" />
+                    <LogOut className="w-4 h-4" />
                     Sign Out
                   </button>
                 </>
               ) : (
                 <button
+                  type="button"
                   onClick={() => setShowLoginModal(true)}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-colors"
+                  className="px-5 py-2.5 bg-[#2e7d5c] hover:bg-[#256b4d] text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
                 >
                   Staff Login
                 </button>
               )}
             </div>
-          </div>
-        </FadeIn>
+          </motion.div>
 
-        <StaggerContainer staggerChildren={0.1} delayChildren={0.3}>
-          <StaggerItem>
-            <div className="mb-8">
-              <div className="flex gap-2 flex-wrap">
-                {filterCategories.map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => handleFilterChange(category)}
-                    className={`px-4 py-2 rounded-full font-semibold transition-all ${
-                      selectedFilter === category
-                        ? "bg-emerald-600 text-white shadow-lg"
-                        : "bg-white text-slate-700 border-2 border-slate-300 hover:border-emerald-600"
-                    }`}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </StaggerItem>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={VIEWPORT_ONCE}
+            variants={FADE_IN_UP}
+            className="mb-12 flex flex-wrap gap-3"
+          >
+            {FILTER_CATEGORIES.map((category) => (
+              <button
+                key={category}
+                type="button"
+                onClick={() => setSelectedFilter(category)}
+                className={`px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
+                  selectedFilter === category
+                    ? "bg-[#059669] text-white shadow-lg"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </motion.div>
 
           {loading ? (
-            <StaggerItem>
-              <div className="text-center py-12">
-                <div className="inline-block animate-spin">
-                  <div className="w-12 h-12 border-4 border-emerald-600 border-t-transparent rounded-full" />
-                </div>
-                <p className="mt-4 text-slate-600">Loading properties...</p>
-              </div>
-            </StaggerItem>
+            <div className="text-center py-16">
+              <Loader2 className="w-12 h-12 text-emerald-600 animate-spin mx-auto" />
+              <p className="mt-4 text-slate-600">Loading properties...</p>
+            </div>
           ) : filteredProperties.length === 0 ? (
-            <StaggerItem>
-              <div className="text-center py-12">
-                <p className="text-xl text-slate-600">
-                  No properties found in this category.
-                </p>
-              </div>
-            </StaggerItem>
+            <div className="text-center py-16">
+              <p className="text-xl text-slate-600">
+                No properties found in this category.
+              </p>
+            </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className={GRID_COLUMNS}>
               {filteredProperties.map((property) => (
                 <PropertyCard
                   key={property.id}
@@ -1192,26 +1361,44 @@ export default function ForSale() {
                   onDelete={handleDeleteProperty}
                   onMarkAsSold={handleMarkAsSold}
                   isDeleting={deleting}
+                  onOpenDetails={setSelectedProperty}
                 />
               ))}
             </div>
           )}
-        </StaggerContainer>
-      </div>
+        </div>
+      </section>
 
-      <LoginModal
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        onSubmit={handleLogin}
-        supabaseConfigured={supabaseConfigured}
-      />
+      <AnimatePresence>
+        {showLoginModal && (
+          <LoginModal
+            isOpen={showLoginModal}
+            onClose={() => setShowLoginModal(false)}
+            onSubmit={handleLogin}
+          />
+        )}
+      </AnimatePresence>
 
-      <AdminModal
-        isOpen={showAdminModal}
-        onClose={() => setShowAdminModal(false)}
-        onSubmit={handleCreateListing}
-        isLoading={isCreatingListing}
-      />
+      <AnimatePresence>
+        {showAdminModal && (
+          <AdminModal
+            isOpen={showAdminModal}
+            onClose={() => setShowAdminModal(false)}
+            onSubmit={handleCreateListing}
+            isLoading={isCreatingListing}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {selectedProperty && (
+          <PropertyDetailModal
+            property={selectedProperty}
+            onClose={() => setSelectedProperty(null)}
+            onInquire={handleInquire}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
