@@ -36,7 +36,7 @@ export const teamMembers: readonly TeamMember[] = [
       "Our people are SRC's greatest asset—building a culture of excellence, integrity, and service across every department.",
   },
   {
-    name: "Eunice C. Jaranilla",
+    name: "Eunice B. Capulso",
     role: "Accountant",
     image: "/images/team/eunice-c-jaranilla.jpg",
     quote:

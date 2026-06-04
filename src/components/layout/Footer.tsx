@@ -88,7 +88,7 @@ export function Footer() {
               className="text-base lg:text-lg font-semibold tracking-tight"
               style={{ fontWeight: 600 }}
             >
-              Headquarters
+              Main Office
             </h3>
             <p className="text-gray-400 text-sm lg:text-base leading-relaxed">
               {footerHeadquarters.lines.map((line) => (

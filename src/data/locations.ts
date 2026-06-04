@@ -67,9 +67,9 @@ export const contactOffices = [
     mapAlt: 'Map showing Polomolok headquarters location',
     title: 'Polomolok Main Office',
     orgLine: 'Sarangani Resources Corporation',
-    addressLines: ['National Highway, Cannery Site', 'Polomolok, South Cotabato 9504', 'Philippines'],
+    addressLines: ['Cannery Housing Subdivision, Cannery Site', 'Polomolok, South Cotabato 9504', 'Philippines'],
     phone: '+63 83 228 8766',
-    email: 'nico_led@yahoo.com',
+    email: 'src.sec75188@gmail.com',
   },
   {
     id: 'gensan',

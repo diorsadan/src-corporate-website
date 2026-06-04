@@ -241,7 +241,7 @@ export function Contact() {
         from_name: "SRC Corporate Website",
         name: formData.fullName,
         email: formData.email,
-        cc: "nico_led@yahoo.com",
+        cc: "src.sec75188@gmail.com",
         message: comprehensiveMessage,
         company: formData.companyName,
         phone: formData.contactNumber,
@@ -667,7 +667,7 @@ export function Contact() {
                     </motion.div>
 
                     <motion.h3
-                      className="text-3xl mb-4 text-gray-900 font-bold"
+                      className="text-3xl mb-4 text-gray-900 font-bold text-center"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 }}
@@ -676,7 +676,7 @@ export function Contact() {
                     </motion.h3>
 
                     <motion.p
-                      className="text-lg text-gray-600 mb-4"
+                      className="text-lg text-gray-600 mb-4 text-center"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.4 }}
@@ -685,7 +685,7 @@ export function Contact() {
                     </motion.p>
 
                     <motion.p
-                      className="text-gray-600"
+                      className="text-gray-600 text-center"
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.5 }}
@@ -716,10 +716,10 @@ export function Contact() {
                   Email
                 </p>
                 <a
-                  href="mailto:nico_led@yahoo.com"
+                  href="mailto:src.sec75188@gmail.com"
                   className="text-lg font-medium hover:underline block break-all"
                 >
-                  nico_led@yahoo.com
+                  src.sec75188@gmail.com
                 </a>
               </div>
 

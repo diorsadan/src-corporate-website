@@ -2,7 +2,7 @@ export const contactInfo = {
   officeAddress:
     "Cannery Housing Subdivision, Cannery Site, Polomolok, 9504 South Cotabato",
   officePhone: "(083) 500 3112",
-  primaryEmail: "nico_led@yahoo.com",
+  primaryEmail: "src.sec75188@gmail.com",
 } as const;
 
 export const generateMailtoLink = (

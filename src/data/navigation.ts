@@ -33,12 +33,12 @@ export const footerSections: { title: string; links: FooterNavLink[] }[] = [
 
 export const footerContactLines: { icon: 'phone' | 'mail' | 'map'; text: string }[] = [
   { icon: 'phone', text: '+63 83 228 8766' },
-  { icon: 'mail', text: 'nico_led@yahoo.com' },
+  { icon: 'mail', text: 'src.sec75188@gmail.com' },
   { icon: 'map', text: 'Polomolok, South Cotabato' },
 ];
 
 export const footerHeadquarters = {
-  lines: ['National Highway, Cannery Site', 'Polomolok, South Cotabato 9504', 'Philippines'],
+  lines: ['Cannery Housing Subdivision, Cannery Site', 'Polomolok, South Cotabato 9504', 'Philippines'],
 };
 
 export const footerCopyright = {
