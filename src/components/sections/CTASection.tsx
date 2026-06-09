@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router";
-import { FadeIn } from "@/components/animations/FadeIn";
+import { FadeIn } from "@/components/animations";
 
 /**
  * CTASection - Lazy-loaded call-to-action section

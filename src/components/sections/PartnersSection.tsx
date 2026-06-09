@@ -1,7 +1,6 @@
 "use client";
 
-import { FadeIn } from "@/components/animations/FadeIn";
-import { StaggerContainer, StaggerItem } from "@/components/animations/index";
+import { FadeIn, StaggerContainer, StaggerItem } from "@/components/animations";
 import { homePartners } from "@/data/partners";
 import { homePartnersSection } from "@/data/statistics";
 

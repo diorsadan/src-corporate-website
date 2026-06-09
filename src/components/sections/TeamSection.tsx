@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { teamMembers, type TeamMember } from "@/data/team";
 import { leadershipSection } from "@/data/about";
-import { FadeIn } from "@/components/animations/FadeIn";
+import { FadeIn } from "@/components/animations";
 
 const CARD_VIEWPORT = { once: true, amount: 0.1 } as const;
 

@@ -214,6 +214,55 @@ export const ANIMATION_DELAYS = {
   "4xl": 0.4,
 } as const;
 
+/* ===== UNIFIED MOTION PATTERNS (design system) ===== */
+
+/** Single source of truth for scroll-reveal, stagger, and modal timings */
+export const MOTION_PATTERNS = {
+  fadeIn: {
+    duration: 0.9,
+    offsetY: 20,
+    viewport: VIEWPORT_ONCE,
+  },
+  stagger: {
+    staggerChildren: ANIMATION_DELAYS.md,
+    delayChildren: ANIMATION_DELAYS.xs,
+    defaultStaggerDelay: ANIMATION_DELAYS.md,
+    viewportAmount: 0.2,
+    viewport: VIEWPORT_ONCE,
+  },
+  staggerItem: {
+    duration: 0.8,
+    offsetY: 20,
+    offsetX: 30,
+  },
+  modal: {
+    duration: 0.3,
+    scale: 0.95,
+    offsetY: 20,
+  },
+  page: {
+    duration: 0.3,
+  },
+} as const;
+
+export const getAnimationDelay = (index: number): number => {
+  const delays = Object.values(ANIMATION_DELAYS);
+  return delays[Math.min(index, delays.length - 1)];
+};
+
+export interface BatchAnimationConfig {
+  index: number;
+  totalItems: number;
+  staggerFactor?: number;
+}
+
+export const getBatchAnimationDelay = ({
+  index,
+  staggerFactor = 0.1,
+}: BatchAnimationConfig): number => {
+  return Math.min(index * staggerFactor, 0.4);
+};
+
 /* ===== COMBINED PRESETS ===== */
 
 /** Hero section animation preset */

@@ -89,17 +89,21 @@ export function validatePhone(phone: string): ValidationError {
 export function validateRequired(
   value: string,
   fieldName: string,
+  /** DOM `name` / error map key — defaults to lowercased label */
+  fieldKey?: string,
 ): ValidationError {
+  const field = fieldKey ?? fieldName.toLowerCase().replace(/\s+/g, "");
+
   if (!value.trim()) {
     return {
-      field: fieldName.toLowerCase(),
+      field,
       message: `${fieldName} is required`,
       isValid: false,
     };
   }
 
   return {
-    field: fieldName.toLowerCase(),
+    field,
     message: "",
     isValid: true,
   };
@@ -120,19 +124,34 @@ export function validateFormData(formData: {
 }): ValidationError[] {
   const errors: ValidationError[] = [];
 
-  // Validate required fields
   errors.push(validateRequired(formData.fullName, "Full Name"));
   errors.push(validateRequired(formData.companyName, "Company Name"));
   errors.push(validateRequired(formData.inquiryType, "Inquiry Type"));
   errors.push(validateRequired(formData.message, "Message"));
-
-  // Validate email
   errors.push(validateEmail(formData.email));
-
-  // Validate phone
   errors.push(validatePhone(formData.contactNumber));
 
-  // Return only invalid fields
+  return errors.filter((error) => !error.isValid);
+}
+
+export interface ConsultationFormData {
+  name: string;
+  email: string;
+  message: string;
+}
+
+/**
+ * Batch validate consultation modal form fields
+ */
+export function validateConsultationFormData(
+  formData: ConsultationFormData,
+): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  errors.push(validateRequired(formData.name, "Full Name", "name"));
+  errors.push(validateEmail(formData.email));
+  errors.push(validateRequired(formData.message, "Message", "message"));
+
   return errors.filter((error) => !error.isValid);
 }
 

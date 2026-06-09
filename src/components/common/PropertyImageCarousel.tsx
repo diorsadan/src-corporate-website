@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   ChevronLeft,
   ChevronRight,
@@ -8,6 +8,12 @@ import {
   Maximize2,
   X,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useAccessibleAnimation } from "@/hooks/useAccessibleAnimation";
 
 /** Remote fallback when local assets are missing (industrial zones not yet uploaded) */
 export const PROPERTY_CAROUSEL_REMOTE_PLACEHOLDER =
@@ -139,8 +145,12 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const firstTickRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const expandTriggerRef = useRef<HTMLButtonElement>(null);
   const imagesRef = useRef(images);
   imagesRef.current = images;
+
+  const { resolveTransition } = useAccessibleAnimation();
+  const slideTransition = resolveTransition(SLIDE_TRANSITION);
 
   const isCardContext = parentGroupName === "card";
   const groupHover = isCardContext ? "group-hover/card" : "group-hover";
@@ -215,13 +225,7 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
   useEffect(() => {
     if (!isLightboxOpen) return;
 
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setIsLightboxOpen(false);
-      }
       if (e.key === "ArrowLeft") {
         goToPrevious();
       }
@@ -231,11 +235,16 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isLightboxOpen, goToNext, goToPrevious]);
+
+  const handleLightboxOpenChange = (open: boolean) => {
+    setIsLightboxOpen(open);
+    if (!open) {
+      setIsPaused(false);
+      expandTriggerRef.current?.focus();
+    }
+  };
 
   const stopBubble = (e: React.MouseEvent) => {
     if (isolateControls) e.stopPropagation();
@@ -320,7 +329,7 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
               className="absolute inset-0"
               initial={false}
               animate={{ opacity: activeIndex === index ? 1 : 0 }}
-              transition={SLIDE_TRANSITION}
+              transition={slideTransition}
               style={{
                 zIndex: activeIndex === index ? 1 : 0,
                 pointerEvents: activeIndex === index ? "auto" : "none",
@@ -375,6 +384,7 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
             )}
             {showExpandControl && (
               <motion.button
+                ref={expandTriggerRef}
                 type="button"
                 onClick={openLightbox}
                 aria-label="Enlarge image"
@@ -437,81 +447,76 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
         )}
       </div>
 
-      <AnimatePresence>
-        {isLightboxOpen && (
-          <motion.div
-            key="carousel-lightbox"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 sm:p-8"
-            role="dialog"
-            aria-modal="true"
-            aria-label={`${alt} — enlarged view`}
+      <Dialog open={isLightboxOpen} onOpenChange={handleLightboxOpenChange}>
+        <DialogContent
+          className="fixed inset-0 z-[100] flex max-w-none translate-x-0 translate-y-0 items-center justify-center border-0 bg-black/95 p-4 sm:p-8 shadow-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 [&>button:last-child]:hidden"
+          onOpenAutoFocus={(e) => {
+            e.preventDefault();
+            const target = e.currentTarget;
+            if (!(target instanceof HTMLElement)) return;
+            const closeBtn = target.querySelector<HTMLButtonElement>(
+              "[data-lightbox-close]",
+            );
+            closeBtn?.focus();
+          }}
+          onInteractOutside={(e) => e.preventDefault()}
+          aria-describedby={undefined}
+        >
+          <DialogTitle className="sr-only">
+            {alt} — enlarged view, image {activeIndex + 1} of {images.length}
+          </DialogTitle>
+
+          <button
+            type="button"
+            data-lightbox-close
             onClick={() => setIsLightboxOpen(false)}
+            className="absolute top-4 right-4 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black"
+            aria-label="Close enlarged image"
           >
-            <button
-              type="button"
-              onClick={() => setIsLightboxOpen(false)}
-              className="absolute top-4 right-4 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
-              aria-label="Close enlarged image"
+            <X className="h-6 w-6" />
+          </button>
+
+          {images.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={goToPrevious}
+                className="absolute left-4 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition-colors hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white"
+                aria-label="Previous image"
+              >
+                <ChevronLeft className="h-7 w-7" />
+              </button>
+              <button
+                type="button"
+                onClick={goToNext}
+                className="absolute right-4 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition-colors hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white"
+                aria-label="Next image"
+              >
+                <ChevronRight className="h-7 w-7" />
+              </button>
+            </>
+          )}
+
+          <div className="relative flex max-h-[90vh] max-w-6xl items-center justify-center">
+            <CarouselSlideImage
+              src={images[activeIndex]}
+              alt={`${alt} — photo ${activeIndex + 1}`}
+              isActive
+              className="max-h-[90vh] max-w-full rounded-lg object-contain shadow-2xl"
+            />
+          </div>
+
+          {images.length > 1 && (
+            <p
+              aria-live="polite"
+              aria-atomic="true"
+              className="absolute bottom-6 left-1/2 z-20 -translate-x-1/2 text-sm font-medium text-white/80"
             >
-              <X className="h-6 w-6" />
-            </button>
-
-            {images.length > 1 && (
-              <>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    goToPrevious();
-                  }}
-                  className="absolute left-4 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition-colors hover:bg-white/20"
-                  aria-label="Previous image"
-                >
-                  <ChevronLeft className="h-7 w-7" />
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    goToNext();
-                  }}
-                  className="absolute right-4 top-1/2 z-20 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white transition-colors hover:bg-white/20"
-                  aria-label="Next image"
-                >
-                  <ChevronRight className="h-7 w-7" />
-                </button>
-              </>
-            )}
-
-            <motion.div
-              key={activeIndex}
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.96 }}
-              transition={{ duration: 0.25 }}
-              className="relative flex max-h-[90vh] max-w-6xl items-center justify-center"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <CarouselSlideImage
-                src={images[activeIndex]}
-                alt={`${alt} — photo ${activeIndex + 1}`}
-                isActive
-                className="max-h-[90vh] max-w-full rounded-lg object-contain shadow-2xl"
-              />
-            </motion.div>
-
-            {images.length > 1 && (
-              <p className="absolute bottom-6 left-1/2 z-20 -translate-x-1/2 text-sm font-medium text-white/80">
-                {activeIndex + 1} / {images.length}
-              </p>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+              {activeIndex + 1} / {images.length}
+            </p>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

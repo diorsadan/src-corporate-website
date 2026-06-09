@@ -9,7 +9,8 @@ import {
   type FormEvent,
 } from "react";
 import { useNavigate } from "react-router";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { PropertyCardSkeleton } from "@/components/ui/PropertyCardSkeleton";
 import {
   LogOut,
   Trash2,
@@ -981,8 +982,8 @@ const PropertyCard = ({
 }: {
   property: PropertyListing;
   isAdmin: boolean;
-  onDelete: (id: string) => Promise<void>;
-  onMarkAsSold: (id: string) => Promise<void>;
+  onDelete: (id: string) => void;
+  onMarkAsSold: (id: string) => void;
   isDeleting: string | null;
   onOpenDetails: (property: PropertyListing) => void;
 }) => {
@@ -1467,10 +1468,7 @@ export default function ForSale() {
           </motion.div>
 
           {loading ? (
-            <div className="text-center py-16">
-              <Loader2 className="w-12 h-12 text-emerald-600 animate-spin mx-auto" />
-              <p className="mt-4 text-slate-600">Loading properties...</p>
-            </div>
+            <PropertyCardSkeleton count={6} columnsClassName={GRID_COLUMNS} />
           ) : filteredProperties.length === 0 ? (
             <div className="text-center py-16">
               <p className="text-xl text-slate-600">

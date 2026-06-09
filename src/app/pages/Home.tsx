@@ -92,16 +92,6 @@ export function Home() {
           </motion.div>
         </FadeIn>
 
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 animate-bounce">
-          <div className="flex flex-col items-center gap-2">
-            <span className="text-white/60 text-sm font-medium">
-              Scroll to explore
-            </span>
-            <div className="w-6 h-10 border-2 border-white/40 rounded-full flex items-start justify-center p-2">
-              <div className="w-1 h-2 bg-white/60 rounded-full animate-pulse" />
-            </div>
-          </div>
-        </div>
       </section>
 
       {/* ABOUT & TRUST — brand only, no property inventory */}

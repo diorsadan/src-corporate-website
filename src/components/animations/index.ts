@@ -1,3 +1,13 @@
-export { FadeIn } from "./FadeIn";
-export { StaggerContainer } from "./StaggerContainer";
-export { StaggerItem } from "./StaggerItem";
+export {
+  FadeIn,
+  StaggerContainer,
+  StaggerItem,
+  MotionPageWrapper,
+  getAnimationDelay,
+  getBatchAnimationDelay,
+} from "./Motion";
+
+export type { BatchAnimationConfig } from "@/constants/animations";
+
+export { useAnimationPattern } from "@/hooks/useAnimationPattern";
+export type { StaggerDirection } from "@/hooks/useAnimationPattern";

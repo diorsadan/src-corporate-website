@@ -10,7 +10,6 @@ import {
   Send,
   Check,
   AlertCircle,
-  Loader,
   RotateCcw,
 } from "lucide-react";
 import { ImageWithFallback } from "@/components/common/ImageWithFallback";
@@ -37,10 +36,12 @@ import {
   type ValidationError,
 } from "@/utils/formValidation";
 import {
-  submitFormWithRetry,
   formatSubmissionError,
   parseWeb3FormsError,
 } from "@/utils/formSubmit";
+import { useNetworkStatusContext } from "@/context/NetworkStatusContext";
+import { SubmissionProgressPanel } from "@/components/common/SubmissionProgressPanel";
+import { useSubmissionRetry } from "@/hooks/useSubmissionRetry";
 
 function SidebarCard({ card }: { card: ContactSidebarCard }) {
   const isGradient = card.variant === "gradient";
@@ -98,18 +99,6 @@ function SidebarCard({ card }: { card: ContactSidebarCard }) {
   );
 }
 
-// Rotating loader spinner component
-function LoadingSpinner() {
-  return (
-    <motion.div
-      animate={{ rotate: 360 }}
-      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-    >
-      <Loader className="w-5 h-5" />
-    </motion.div>
-  );
-}
-
 function LocationMapEmbed() {
   return (
     <div className="w-full h-[400px] overflow-hidden rounded-t-xl bg-slate-100">
@@ -126,6 +115,15 @@ function LocationMapEmbed() {
 }
 
 export function Contact() {
+  const { getOfflineSubmissionError } = useNetworkStatusContext();
+  const {
+    submit,
+    cancel,
+    retryNow,
+    isSubmitting,
+    progress,
+  } = useSubmissionRetry();
+
   const [formData, setFormData] = useState({
     fullName: "",
     companyName: "",
@@ -145,7 +143,6 @@ export function Contact() {
   );
 
   // Form submission state
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -220,7 +217,13 @@ export function Contact() {
       return;
     }
 
-    setIsSubmitting(true);
+    const offlineError = getOfflineSubmissionError();
+    if (offlineError) {
+      setErrorMessage(offlineError);
+      setShowError(true);
+      return;
+    }
+
     setShowError(false);
     setShowRetryButton(false);
 
@@ -252,7 +255,7 @@ export function Contact() {
       console.log("📤 Initiating form submission with retry logic...");
 
       // Submit with retry logic (max 3 attempts with exponential backoff)
-      const result = await submitFormWithRetry(
+      const result = await submit(
         () =>
           fetch("https://api.web3forms.com/submit", {
             method: "POST",
@@ -262,12 +265,11 @@ export function Contact() {
             },
             body: JSON.stringify(payload),
           }).then((res) => res.json()),
-        {
-          maxRetries: 3,
-          initialDelayMs: 1000,
-          backoffMultiplier: 2,
-        },
       );
+
+      if (result.cancelled) {
+        return;
+      }
 
       setTotalAttempts(result.totalAttempts);
 
@@ -312,8 +314,6 @@ export function Contact() {
       setErrorMessage(errorMsg || "Please try again later.");
       setShowError(true);
       setShowRetryButton(true);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -376,17 +376,8 @@ export function Contact() {
                                     !isSubmitting ? { scale: 0.95 } : {}
                                   }
                                 >
-                                  {isSubmitting ? (
-                                    <>
-                                      <Loader className="w-4 h-4 animate-spin" />
-                                      Retrying...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <RotateCcw className="w-4 h-4" />
-                                      Try Again
-                                    </>
-                                  )}
+                                  <RotateCcw className="w-4 h-4" />
+                                  Try Again
                                 </motion.button>
                               )}
                             </div>
@@ -600,6 +591,15 @@ export function Contact() {
                         />
                       </motion.div>
 
+                      {isSubmitting && (
+                        <SubmissionProgressPanel
+                          progress={progress}
+                          onCancel={cancel}
+                          onRetryNow={retryNow}
+                          submittingLabel="Submitting inquiry"
+                        />
+                      )}
+
                       <motion.button
                         type="submit"
                         disabled={isSubmitting}
@@ -617,17 +617,8 @@ export function Contact() {
                           damping: 35,
                         }}
                       >
-                        {isSubmitting ? (
-                          <>
-                            <LoadingSpinner />
-                            Submitting...
-                          </>
-                        ) : (
-                          <>
-                            <Send className="w-5 h-5" />
-                            Submit Inquiry
-                          </>
-                        )}
+                        <Send className="w-5 h-5" />
+                        Submit Inquiry
                       </motion.button>
                     </form>
                   </motion.div>

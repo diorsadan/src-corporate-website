@@ -58,6 +58,12 @@
   --duration-slower: 700ms;
 }
 
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 html {
   font-size: var(--site-root-font-size);
 }

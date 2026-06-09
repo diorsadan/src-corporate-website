@@ -4,10 +4,9 @@ import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { Link } from "react-router";
 import { ImageWithFallback } from "@/components/common/ImageWithFallback";
-import { StaggerContainer, StaggerItem } from "@/components/animations/index";
+import { StaggerContainer, StaggerItem, FadeIn } from "@/components/animations";
 import { featuredEconomicZones } from "@/data/properties";
 import { homeFeaturedSection } from "@/data/statistics";
-import { FadeIn } from "@/components/animations/FadeIn";
 
 /**
  * FeaturedZonesSection - Lazy-loaded section component

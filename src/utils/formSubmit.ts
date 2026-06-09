@@ -1,108 +1,182 @@
 /**
  * Form Submission Utility with Retry Logic
  * Implements exponential backoff for transient network errors
- * Provides enterprise-grade error handling
+ * Provides enterprise-grade error handling with transparent retry UX
  */
 
 export interface FormSubmissionConfig {
-  maxRetries?: number; // Default: 3
-  initialDelayMs?: number; // Default: 1000ms
-  backoffMultiplier?: number; // Default: 2
+  maxRetries?: number;
+  initialDelayMs?: number;
+  backoffMultiplier?: number;
+  controller?: SubmissionRetryController;
+  onProgress?: (progress: SubmitProgress) => void;
+}
+
+export type SubmitPhase = "submitting" | "backoff";
+
+export interface SubmitProgress {
+  attempt: number;
+  maxAttempts: number;
+  phase: SubmitPhase;
+  backoffMs?: number;
 }
 
 export interface FormSubmissionResponse {
   success: boolean;
-  data?: any;
+  data?: unknown;
   error?: string;
   retriesUsed: number;
   totalAttempts: number;
+  cancelled?: boolean;
 }
 
 /**
- * Calculates exponential backoff delay
- * @param retryCount - Current retry attempt number
- * @param initialDelayMs - Initial delay in milliseconds
- * @param backoffMultiplier - Multiplier for exponential growth
- * @returns Delay in milliseconds
+ * Controls in-flight retry behaviour — cancel entirely or skip backoff wait.
  */
+export class SubmissionRetryController {
+  private abortController = new AbortController();
+  private retryNowCallbacks: Array<() => void> = [];
+
+  readonly signal: AbortSignal;
+
+  constructor() {
+    this.signal = this.abortController.signal;
+  }
+
+  cancel(): void {
+    this.abortController.abort();
+  }
+
+  retryNow(): void {
+    const callbacks = [...this.retryNowCallbacks];
+    this.retryNowCallbacks = [];
+    callbacks.forEach((callback) => callback());
+  }
+
+  wait(ms: number): Promise<"done" | "cancelled" | "retry_now"> {
+    if (this.signal.aborted) {
+      return Promise.resolve("cancelled");
+    }
+
+    return new Promise((resolve) => {
+      const timeoutId = window.setTimeout(() => {
+        cleanup();
+        resolve("done");
+      }, ms);
+
+      const onAbort = () => {
+        cleanup();
+        resolve("cancelled");
+      };
+
+      const onRetryNow = () => {
+        cleanup();
+        resolve("retry_now");
+      };
+
+      const cleanup = () => {
+        window.clearTimeout(timeoutId);
+        this.signal.removeEventListener("abort", onAbort);
+        const index = this.retryNowCallbacks.indexOf(onRetryNow);
+        if (index >= 0) {
+          this.retryNowCallbacks.splice(index, 1);
+        }
+      };
+
+      this.retryNowCallbacks.push(onRetryNow);
+      this.signal.addEventListener("abort", onAbort, { once: true });
+    });
+  }
+}
+
 export function calculateBackoffDelay(
   retryCount: number,
   initialDelayMs: number = 1000,
   backoffMultiplier: number = 2,
 ): number {
-  // Formula: initialDelay * (multiplier ^ retryCount) + random jitter
   const exponentialDelay =
     initialDelayMs * Math.pow(backoffMultiplier, retryCount);
-  // Add random jitter (±10%) to prevent thundering herd
   const jitter = exponentialDelay * 0.1 * (Math.random() - 0.5);
-  return Math.min(exponentialDelay + jitter, 10000); // Cap at 10 seconds
+  return Math.min(exponentialDelay + jitter, 10000);
 }
 
-/**
- * Check if error is transient (retryable)
- * @param statusCode - HTTP status code
- * @param error - Error message or error object
- * @returns True if error is transient
- */
-export function isTransientError(statusCode?: number, error?: any): boolean {
-  // Network timeout or connection errors
+export function isTransientError(statusCode?: number, error?: unknown): boolean {
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === "object" && error !== null && "message" in error
+        ? String((error as { message: unknown }).message)
+        : "";
+
   if (
-    error?.message?.includes("timeout") ||
-    error?.message?.includes("connection") ||
-    error?.message?.includes("ECONNREFUSED") ||
-    error?.message?.includes("ENOTFOUND")
+    message.includes("timeout") ||
+    message.includes("connection") ||
+    message.includes("ECONNREFUSED") ||
+    message.includes("ENOTFOUND") ||
+    message.includes("Failed to fetch") ||
+    message.includes("NetworkError")
   ) {
     return true;
   }
 
-  // HTTP 5xx server errors (transient)
   if (statusCode && statusCode >= 500 && statusCode < 600) {
     return true;
   }
 
-  // HTTP 429 (Too Many Requests)
-  if (statusCode === 429) {
-    return true;
-  }
-
-  // HTTP 408 (Request Timeout)
-  if (statusCode === 408) {
+  if (statusCode === 429 || statusCode === 408) {
     return true;
   }
 
   return false;
 }
 
-/**
- * Submit form with retry logic and exponential backoff
- * @param submitFn - Async function that performs the actual submission
- * @param config - Configuration for retry behavior
- * @returns Promise with submission result
- */
+function reportProgress(
+  config: FormSubmissionConfig,
+  progress: SubmitProgress,
+): void {
+  config.onProgress?.(progress);
+}
+
 export async function submitFormWithRetry(
-  submitFn: () => Promise<any>,
+  submitFn: () => Promise<unknown>,
   config: FormSubmissionConfig = {},
 ): Promise<FormSubmissionResponse> {
   const {
     maxRetries = 3,
     initialDelayMs = 1000,
     backoffMultiplier = 2,
+    controller,
   } = config;
 
-  let lastError: any;
+  const maxAttempts = maxRetries + 1;
+  let lastError: unknown;
   let totalAttempts = 0;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    if (controller?.signal.aborted) {
+      return {
+        success: false,
+        error: "Submission cancelled",
+        retriesUsed: attempt,
+        totalAttempts,
+        cancelled: true,
+      };
+    }
+
     totalAttempts++;
+    reportProgress(config, {
+      attempt: totalAttempts,
+      maxAttempts,
+      phase: "submitting",
+    });
 
     try {
       console.log(
-        `📤 Form submission attempt ${totalAttempts} of ${maxRetries + 1}`,
+        `📤 Form submission attempt ${totalAttempts} of ${maxAttempts}`,
       );
 
-      const result = await submitFn();
+      const result = (await submitFn()) as Record<string, unknown>;
 
-      // Check if submission was successful
       if (result.success === true || result.ok === true) {
         console.log(
           `✅ Form submitted successfully on attempt ${totalAttempts}`,
@@ -115,42 +189,34 @@ export async function submitFormWithRetry(
         };
       }
 
-      // If response indicates permanent error, don't retry
       if (
         result.statusCode === 400 ||
         result.statusCode === 401 ||
         result.statusCode === 403
       ) {
-        throw new Error(result.message || "Client error");
+        throw new Error(String(result.message || "Client error"));
       }
 
       lastError = result;
 
-      // If this is the last attempt, return error
       if (attempt === maxRetries) {
         break;
       }
 
-      // Check if error is transient (retryable)
-      if (!isTransientError(result.statusCode, lastError)) {
-        // Permanent error, don't retry
-        throw new Error(result.message || "Form submission failed");
+      if (!isTransientError(Number(result.statusCode), lastError)) {
+        throw new Error(String(result.message || "Form submission failed"));
       }
     } catch (error) {
       lastError = error;
 
-      // If this is the last attempt, return error
       if (attempt === maxRetries) {
         break;
       }
 
-      // Check if error is transient (retryable)
       if (!isTransientError(undefined, error)) {
-        // Permanent error, don't retry
         throw error;
       }
 
-      // Calculate backoff delay
       const delayMs = calculateBackoffDelay(
         attempt,
         initialDelayMs,
@@ -162,12 +228,37 @@ export async function submitFormWithRetry(
         error,
       );
 
-      // Wait before retrying
-      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      reportProgress(config, {
+        attempt: totalAttempts + 1,
+        maxAttempts,
+        phase: "backoff",
+        backoffMs: delayMs,
+      });
+
+      if (controller) {
+        const waitResult = await controller.wait(delayMs);
+        if (waitResult === "cancelled") {
+          return {
+            success: false,
+            error: "Submission cancelled",
+            retriesUsed: attempt,
+            totalAttempts,
+            cancelled: true,
+          };
+        }
+        if (waitResult === "retry_now") {
+          reportProgress(config, {
+            attempt: totalAttempts + 1,
+            maxAttempts,
+            phase: "submitting",
+          });
+        }
+      } else {
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
     }
   }
 
-  // All retries exhausted
   const errorMsg =
     lastError instanceof Error
       ? lastError.message
@@ -188,20 +279,16 @@ export async function submitFormWithRetry(
   };
 }
 
-/**
- * Format form submission error message for user display
- * @param error - Error message or object
- * @param totalAttempts - Number of attempts made
- * @returns User-friendly error message
- */
 export function formatSubmissionError(
-  error: string | any,
+  error: string | unknown,
   totalAttempts: number = 1,
 ): string {
   const errorMsg =
     typeof error === "string"
       ? error
-      : error?.message || "An error occurred while submitting the form";
+      : error instanceof Error
+        ? error.message
+        : "An error occurred while submitting the form";
 
   if (totalAttempts > 1) {
     return `${errorMsg} (Failed after ${totalAttempts} attempts. Please check your connection and try again.)`;
@@ -210,18 +297,13 @@ export function formatSubmissionError(
   return errorMsg;
 }
 
-/**
- * Web3Forms specific error parser
- * @param response - Response from Web3Forms API
- * @returns Formatted error message
- */
-export function parseWeb3FormsError(response: any): string {
+export function parseWeb3FormsError(response: Record<string, unknown>): string {
   if (response.message) {
-    return response.message;
+    return String(response.message);
   }
 
   if (response.error) {
-    return response.error;
+    return String(response.error);
   }
 
   if (!response.success) {
