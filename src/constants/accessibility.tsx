@@ -1,3 +1,5 @@
+import * as React from "react";
+
 /**
  * Accessibility (a11y) Checklist & Implementation Guide
  * For SRC Corporate Website - React + Framer Motion

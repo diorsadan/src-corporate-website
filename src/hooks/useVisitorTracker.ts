@@ -1,8 +1,9 @@
 import { useEffect } from "react";
 
-// 🔴 PASTE THE NEW URL YOU COPIED FROM STEP 1 HERE:
+// Paste the current Google Apps Script tracking endpoint here.
 const APPS_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbzlKMv7eE_YX6h7F4KQ7n1fOX6iPaE6cU8Q2M__xQLZqUFt0JMPDcahWpzccxHbXvRPIQ/exec"
+  "https://script.google.com/macros/s/AKfycbzlKMv7eE_YX6h7F4KQ7n1fOX6iPaE6cU8Q2M__xQLZqUFt0JMPDcahWpzccxHbXvRPIQ/exec";
+
 export function useVisitorTracker() {
   useEffect(() => {
     const trackVisitor = async () => {
@@ -61,8 +62,9 @@ export function useVisitorTracker() {
         } else {
           // Standard production live geo-lookup infrastructure
           const response = await fetch("https://ipapi.co/json/");
-          if (!response.ok)
+          if (!response.ok) {
             throw new Error("Geo IP tracking provider unavailable");
+          }
           const geo = await response.json();
 
           payload = {
@@ -85,10 +87,10 @@ export function useVisitorTracker() {
         });
 
         console.log(
-          "✅ [VisitorTracker] Analytics packet successfully transmitted.",
+          "[VisitorTracker] Analytics packet successfully transmitted.",
         );
       } catch (err) {
-        console.error("❌ [VisitorTracker] Transmission failure:", err);
+        console.error("[VisitorTracker] Transmission failure:", err);
       }
     };
 

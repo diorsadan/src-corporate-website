@@ -26,14 +26,14 @@ export const teamMembers: readonly TeamMember[] = [
     role: "President",
     image: "/assets/team/atty-rene-ruel-b-almero.jpg",
     quote:
-      "I am dedicated to ensuring SRC remains a pillar of economic growth and sustainable development in SOCCSKSARGEN.",
+      "For me, SRC represents the structural balance between industrial progress and legal, environmental stewardship in our region. It is my distinct duty as President to steer this administration with absolute integrity, ensuring our operations create an enduring economic legacy that genuinely upgrades the communities we serve.",
   },
   {
     name: "Nicolas M. Ledesma",
     role: "HR Manager / Office Administrator",
     image: "/assets/team/nicolas-m-ledesma.jpg",
     quote:
-      "Our people are SRC's greatest asset—building a culture of excellence, integrity, and service across every department.",
+      "For me, SRC is a low-profile but impactful organization with a 'big heart' that truly prioritizes the welfare of its employees and their families. When I hear the word 'SRC,' I think of a family-oriented corporation that I am deeply grateful to belong to, a place that consistently makes a real and positive difference in the lives of its people. ",
   },
   {
     name: "Eunice B. Capulso",
@@ -47,21 +47,21 @@ export const teamMembers: readonly TeamMember[] = [
     role: "Liaison Officer II",
     image: "/assets/team/mary-grace-b-disca.jpg",
     quote:
-      "Strong relationships with government and local stakeholders keep SRC's economic zones connected to the region's aspirations.",
+      "SRC is a dynamic real estate company specializing in property management, acquisition, sales, and leasing where I focus on building and sustaining long-term, professional partnerships. When I hear 'SRC,' I think of an environment that values professional excellence, driven by the clear communication and proactive problem-solving needed to succeed in the industry.",
   },
   {
     name: "Ronel Alao",
     role: "Messenger / Driver / Utility",
     image: "/assets/team/ronel-alao.jpg",
     quote:
-      "Reliable day-to-day operations behind the scenes let our leadership focus on delivering world-class facilities for locators.",
+      "To me, SRC means teamwork and growth. My role is to be the reliable backbone of our daily operations by taking care of our transport, messages, and maintenance without any hitches. I like knowing that by keeping our day-to-day work running safely and seamlessly, I give our leaders the peace of mind to focus completely on taking care of our locators.",
   },
   {
     name: "Naomi Castardo",
     role: "Accounting Assistant",
     image: "/assets/team/naomi-castardo.jpg",
     quote:
-      "Precision in every figure supports SRC's mission to grow responsibly and accountably as South Cotabato's premier developer.",
+      "SRC is the professional environment where I serve as an Accounting Clerk, ensuring precision and accuracy in our financial transactions and records. When I hear 'SRC,' I think of a workplace that challenges me to grow, fostering my personal discipline, productivity, and the ability to multitask effectively within a professional team.",
   },
 ] as const;
 

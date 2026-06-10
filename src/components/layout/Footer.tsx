@@ -5,7 +5,6 @@ import {
   footerCopyright,
   footerDeveloperCredits,
   footerHeadquarters,
-  footerLegalLinks,
   footerSections,
 } from "@/data/navigation";
 
@@ -118,20 +117,6 @@ export function Footer() {
                 </Link>
               </p>
             </div>
-            <nav
-              className="flex gap-6 text-xs sm:text-sm flex-wrap justify-center md:justify-end"
-              aria-label="Legal"
-            >
-              {footerLegalLinks.map((link) => (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  className="text-gray-400 hover:text-[#84cc16] transition-colors duration-200"
-                >
-                  {link.label}
-                </a>
-              ))}
-            </nav>
           </div>
         </div>
       </div>
