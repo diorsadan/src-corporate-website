@@ -105,7 +105,7 @@ export default function TeamCredits() {
 
       {/* Main Interactive Grid */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {engineers.map((eng, idx) => (
             <motion.div
               key={eng.id}
@@ -188,14 +188,6 @@ export default function TeamCredits() {
               </div>
             </motion.div>
           ))}
-        </div>
-
-        {/* Subtle footer hint (kept minimal) */}
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center gap-2 rounded-full bg-white border border-slate-200/70 px-5 py-2.5 shadow-sm text-slate-600 text-xs font-semibold">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            Portfolio dashboard view with interactive resume previews
-          </div>
         </div>
       </div>
 

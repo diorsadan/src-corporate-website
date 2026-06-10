@@ -2,8 +2,7 @@ import { useEffect } from "react";
 
 // 🔴 PASTE THE NEW URL YOU COPIED FROM STEP 1 HERE:
 const APPS_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbzlKMv7eE_YX6h7F4KQ7n1fOX6iPaE6cU8Q2M__xQLZqUFt0JMPDcahWpzccxHbXvRPIQ/exec";
-
+  "https://script.google.com/macros/s/AKfycbzlKMv7eE_YX6h7F4KQ7n1fOX6iPaE6cU8Q2M__xQLZqUFt0JMPDcahWpzccxHbXvRPIQ/exec"
 export function useVisitorTracker() {
   useEffect(() => {
     const trackVisitor = async () => {

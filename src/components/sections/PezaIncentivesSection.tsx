@@ -24,6 +24,7 @@ import {
 import { useState } from "react";
 import { FadeIn } from "@/components/animations/index";
 import { HoverRevealCard } from "@/components/common/HoverRevealCard";
+import { useTapToToggle } from "@/hooks/useTapToToggle";
 import { ConsultationForm } from "@/components/sections/ConsultationForm";
 import { pezaIncentivesData } from "@/data/pezaIncentives";
 
@@ -65,6 +66,7 @@ const additionalBenefits = [
 
 export function PezaIncentivesSection() {
   const [isConsultationOpen, setIsConsultationOpen] = useState(false);
+  const { handleCardTap, isCardActive } = useTapToToggle();
   const { strategicAdvantage, fiscalIncentives, operationalBenefits } =
     pezaIncentivesData;
 
@@ -91,9 +93,13 @@ export function PezaIncentivesSection() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-6xl mx-auto">
             {strategicAdvantage.objectives.map((objective, index) => {
               const IconComponent = objectiveIcons[index] ?? Sprout;
+              const cardId = `objective-${objective.title}`;
               return (
                 <HoverRevealCard
                   key={objective.title}
+                  cardId={cardId}
+                  isActive={isCardActive(cardId)}
+                  onCardTap={handleCardTap}
                   icon={IconComponent}
                   title={objective.title}
                 >
@@ -128,9 +134,13 @@ export function PezaIncentivesSection() {
               const iconKey = benefit.icon as keyof typeof fiscalIconMap;
               const IconComponent =
                 fiscalIconMap[iconKey] ?? TrendingUp;
+              const cardId = `fiscal-${benefit.title}`;
               return (
                 <HoverRevealCard
                   key={benefit.title}
+                  cardId={cardId}
+                  isActive={isCardActive(cardId)}
+                  onCardTap={handleCardTap}
                   icon={IconComponent}
                   title={benefit.title}
                 >
@@ -165,9 +175,13 @@ export function PezaIncentivesSection() {
               const iconKey = benefit.icon as keyof typeof operationalIconMap;
               const IconComponent =
                 operationalIconMap[iconKey] ?? Shield;
+              const cardId = `operational-${benefit.title}`;
               return (
                 <HoverRevealCard
                   key={benefit.title}
+                  cardId={cardId}
+                  isActive={isCardActive(cardId)}
+                  onCardTap={handleCardTap}
                   icon={IconComponent}
                   title={benefit.title}
                 >
@@ -199,9 +213,13 @@ export function PezaIncentivesSection() {
             {additionalBenefits.map((benefit, index) => {
               const IconComponent =
                 additionalBenefitIcons[index] ?? Percent;
+              const cardId = `additional-${benefit.title}`;
               return (
                 <HoverRevealCard
                   key={benefit.title}
+                  cardId={cardId}
+                  isActive={isCardActive(cardId)}
+                  onCardTap={handleCardTap}
                   icon={IconComponent}
                   title={benefit.title}
                 >

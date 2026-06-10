@@ -5,6 +5,11 @@ import { motion } from "framer-motion";
 import { teamMembers, type TeamMember } from "@/data/team";
 import { leadershipSection } from "@/data/about";
 import { FadeIn } from "@/components/animations";
+import { useTapToToggle } from "@/hooks/useTapToToggle";
+import {
+  faceLayerClasses,
+  overlayLayerClasses,
+} from "@/utils/interactiveCardClasses";
 
 const CARD_VIEWPORT = { once: true, amount: 0.1 } as const;
 
@@ -40,7 +45,7 @@ function TeamMemberAvatar({ member }: TeamMemberAvatarProps) {
   }, [member.image]);
 
   return (
-    <div className="w-32 h-32 mx-auto mb-6 overflow-hidden rounded-full border-2 border-slate-100 shadow-sm bg-white">
+    <div className="w-40 h-40 md:w-44 md:h-44 mx-auto mb-4 overflow-hidden rounded-full border border-slate-100 shadow-inner bg-white">
       {imageFailed ? (
         <div
           className="flex h-full w-full items-center justify-center bg-gradient-to-br from-emerald-600 via-emerald-700 to-emerald-900"
@@ -48,7 +53,7 @@ function TeamMemberAvatar({ member }: TeamMemberAvatarProps) {
           aria-label={`${member.name} profile placeholder`}
         >
           <span
-            className="text-2xl font-black tracking-tight text-white select-none"
+            className="text-3xl font-black tracking-tight text-white select-none"
             aria-hidden
           >
             {initials}
@@ -58,7 +63,7 @@ function TeamMemberAvatar({ member }: TeamMemberAvatarProps) {
         <img
           src={member.image}
           alt={member.name}
-          className="h-full w-full object-cover object-center"
+          className="h-full w-full rounded-full object-cover object-center"
           loading="lazy"
           decoding="async"
           onError={() => setImageFailed(true)}
@@ -72,6 +77,8 @@ function TeamMemberAvatar({ member }: TeamMemberAvatarProps) {
  * TeamSection — Individual leadership & operations roster (group portrait lives on About page).
  */
 export function TeamSection() {
+  const { activeCardId, handleCardTap, isCardActive } = useTapToToggle();
+
   return (
     <section
       className="pt-10 pb-20 sm:pt-12 sm:pb-24 lg:pt-14 lg:pb-28 bg-gradient-to-b from-slate-50/80 to-white"
@@ -95,49 +102,68 @@ export function TeamSection() {
         </FadeIn>
 
         <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 list-none p-0 m-0 mt-12">
-          {teamMembers.map((member, index) => (
-            <motion.li
-              key={member.name}
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={CARD_VIEWPORT}
-              transition={{
-                duration: 0.45,
-                ease: "easeOut",
-                delay: index * 0.08,
-              }}
-              className="h-full"
-            >
-              <article
-                className="group relative h-full min-h-[320px] overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm transition-all duration-300 cursor-pointer"
-              >
-                <div className="relative z-0 flex h-full flex-col items-center justify-center p-8 text-center transition-opacity duration-300 group-hover:opacity-0">
-                  <TeamMemberAvatar member={member} />
-                  <h3 className="text-lg font-bold text-slate-900 leading-snug tracking-tight">
-                    {member.name}
-                  </h3>
-                  <p className="text-sm font-medium text-emerald-600 tracking-wide mt-1">
-                    {member.role}
-                  </p>
-                </div>
+          {teamMembers.map((member, index) => {
+            const cardId = member.name;
+            const isActive = isCardActive(cardId);
 
-                <div
-                  className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-emerald-900 p-6 text-center opacity-0 transition-opacity duration-500 ease-in-out group-hover:opacity-100"
-                  aria-hidden
+            return (
+              <motion.li
+                key={member.name}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={CARD_VIEWPORT}
+                transition={{
+                  duration: 0.45,
+                  ease: "easeOut",
+                  delay: index * 0.08,
+                }}
+                className="h-full"
+              >
+                <article
+                  data-tap-card-id={cardId}
+                  onClick={() => handleCardTap(cardId)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      handleCardTap(cardId);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={isActive}
+                  aria-label={`${member.name}, ${member.role}. Tap to reveal quote.`}
+                  className="group relative h-full min-h-[380px] overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm transition-all duration-300 ease-in-out cursor-pointer touch-manipulation"
                 >
-                  <p className="text-white/95 text-sm md:text-base italic mb-4 leading-relaxed font-serif max-w-[18rem] sm:max-w-none">
-                    &ldquo;{member.quote}&rdquo;
-                  </p>
-                  <p className="text-emerald-100 font-semibold text-sm">
-                    {member.name}
-                  </p>
-                  <p className="text-emerald-300 text-xs uppercase tracking-wider mt-1">
-                    {member.role}
-                  </p>
-                </div>
-              </article>
-            </motion.li>
-          ))}
+                  <div
+                    className={`relative z-0 flex h-full flex-col items-center justify-center p-6 md:p-8 text-center ${faceLayerClasses(isActive)}`}
+                  >
+                    <TeamMemberAvatar member={member} />
+                    <h3 className="text-xl font-bold tracking-tight text-slate-800 md:text-2xl leading-snug">
+                      {member.name}
+                    </h3>
+                    <p className="text-sm font-medium text-emerald-600 tracking-wide mt-1">
+                      {member.role}
+                    </p>
+                  </div>
+
+                  <div
+                    className={`absolute inset-0 z-10 flex flex-col items-center justify-center bg-emerald-900 p-6 text-center ${overlayLayerClasses(isActive)}`}
+                    aria-hidden={!isActive && activeCardId !== cardId}
+                  >
+                    <p className="text-white/95 text-sm md:text-base italic mb-4 leading-relaxed font-serif max-w-[18rem] sm:max-w-none">
+                      &ldquo;{member.quote}&rdquo;
+                    </p>
+                    <p className="text-emerald-100 font-semibold text-sm">
+                      {member.name}
+                    </p>
+                    <p className="text-emerald-300 text-xs uppercase tracking-wider mt-1">
+                      {member.role}
+                    </p>
+                  </div>
+                </article>
+              </motion.li>
+            );
+          })}
         </ul>
       </div>
     </section>

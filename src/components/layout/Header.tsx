@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { Logo } from "./Logo";
 import { primaryNav } from "@/data/navigation";
 import { useHeaderScroll } from "@/hooks/useHeaderScroll";
@@ -13,6 +13,66 @@ const HEADER_SURFACE_TRANSITION =
 const COLOR_TRANSITION = "transition-colors duration-700 ease-in-out";
 
 const LOGO_SLIDE_TRANSITION = { duration: 0.7, ease: "easeInOut" as const };
+
+function HamburgerIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+    >
+      <path
+        d="M4 7H20"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M4 12H20"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M4 17H20"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function CloseIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+    >
+      <path
+        d="M6 6L18 18"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M18 6L6 18"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
 function HeaderNavLinks({
   pathname,
@@ -77,10 +137,55 @@ function HeaderNavLinks({
   );
 }
 
+function MobileHeaderNavLinks({
+  pathname,
+  onNavigate,
+  navLinkBase,
+  navLinkActive,
+  isScrolled,
+}: {
+  pathname: string;
+  onNavigate: (href: string) => (e: React.MouseEvent) => void;
+  navLinkBase: string;
+  navLinkActive: string;
+  isScrolled: boolean;
+}) {
+  return (
+    <>
+      {primaryNav.map((link) => {
+        const isActive = pathname === link.path;
+
+        return (
+          <a
+            key={link.path}
+            href={link.path}
+            onClick={onNavigate(link.path)}
+            className={`block w-full rounded-lg px-3 py-3 text-base font-medium ${COLOR_TRANSITION} ${
+              isActive ? navLinkActive : navLinkBase
+            } ${
+              isActive
+                ? isScrolled
+                  ? "bg-white/10"
+                  : "bg-emerald-50"
+                : isScrolled
+                  ? "hover:bg-white/10"
+                  : "hover:bg-slate-50"
+            }`}
+          >
+            {link.label}
+          </a>
+        );
+      })}
+    </>
+  );
+}
+
 export function Header() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isScrolled } = useHeaderScroll(location.pathname);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLargeScreen, setIsLargeScreen] = useState(false);
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -93,8 +198,27 @@ export function Header() {
     };
   }, []);
 
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 1024px)");
+    const syncLargeScreen = () => {
+      const matches = mediaQuery.matches;
+      setIsLargeScreen(matches);
+      if (matches) {
+        setIsMenuOpen(false);
+      }
+    };
+    syncLargeScreen();
+    mediaQuery.addEventListener("change", syncLargeScreen);
+    return () => mediaQuery.removeEventListener("change", syncLargeScreen);
+  }, []);
+
   const handleNavigation = (href: string) => (e: React.MouseEvent) => {
     e.preventDefault();
+    setIsMenuOpen(false);
 
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -128,22 +252,27 @@ export function Header() {
     ? "bg-white"
     : "bg-gradient-to-r from-[#059669] to-[#047857]";
 
-  const rightClusterClasses =
-    "hidden md:flex items-center gap-8 lg:gap-12 transition-[flex-grow,gap] duration-700 ease-in-out";
-
   const logoCircleClasses = isScrolled
     ? "shadow-md ring-2 ring-white/50"
     : "shadow-sm ring-1 ring-slate-200/90";
 
+  const mobileMenuButtonClasses = isScrolled
+    ? "text-white hover:bg-white/10"
+    : "text-gray-700 hover:bg-slate-100";
+
+  const mobileMenuPanelClasses = isScrolled
+    ? "bg-[#2e7d5c] border-emerald-700 text-white"
+    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white";
+
   return (
     <header
-      className={`sticky top-0 z-50 ${HEADER_SURFACE_TRANSITION} ${headerSurfaceClasses}`}
+      className={`sticky top-0 z-50 relative ${HEADER_SURFACE_TRANSITION} ${headerSurfaceClasses}`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 sm:h-20 lg:h-24 items-center justify-between">
           <motion.div
-            className="flex-shrink-0 cursor-pointer"
-            animate={{ x: isScrolled ? -16 : 0 }}
+            className="flex-shrink-0 cursor-pointer z-10"
+            animate={{ x: isScrolled && isLargeScreen ? -16 : 0 }}
             transition={LOGO_SLIDE_TRANSITION}
             whileHover={{ opacity: 0.85 }}
             whileTap={{ scale: 0.98 }}
@@ -157,22 +286,51 @@ export function Header() {
             </Link>
           </motion.div>
 
-          <div className={rightClusterClasses}>
-            <nav
-              className="flex items-center gap-8 lg:gap-12"
-              aria-label="Primary navigation"
-            >
-              <HeaderNavLinks
-                pathname={location.pathname}
-                onNavigate={handleNavigation}
-                navLinkBase={navLinkBase}
-                navLinkActive={navLinkActive}
-                activeIndicatorClass={activeIndicatorClass}
-              />
-            </nav>
-          </div>
+          <nav
+            className="hidden lg:flex lg:items-center lg:gap-8"
+            aria-label="Primary navigation"
+          >
+            <HeaderNavLinks
+              pathname={location.pathname}
+              onNavigate={handleNavigation}
+              navLinkBase={navLinkBase}
+              navLinkActive={navLinkActive}
+              activeIndicatorClass={activeIndicatorClass}
+            />
+          </nav>
+
+          <button
+            type="button"
+            className={`flex lg:hidden items-center justify-center p-2 rounded-md focus:outline-none transition-colors z-50 ${mobileMenuButtonClasses}`}
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={isMenuOpen}
+            aria-controls="mobile-primary-navigation"
+          >
+            {isMenuOpen ? (
+              <CloseIcon className="h-6 w-6" />
+            ) : (
+              <HamburgerIcon className="h-6 w-6" />
+            )}
+          </button>
         </div>
       </div>
+
+      {isMenuOpen && (
+        <nav
+          id="mobile-primary-navigation"
+          aria-label="Primary navigation"
+          className={`absolute top-full left-0 w-full border-b shadow-2xl lg:hidden flex flex-col p-5 space-y-4 z-[9999] ${HEADER_SURFACE_TRANSITION} ${mobileMenuPanelClasses}`}
+        >
+          <MobileHeaderNavLinks
+            pathname={location.pathname}
+            onNavigate={handleNavigation}
+            navLinkBase={navLinkBase}
+            navLinkActive={navLinkActive}
+            isScrolled={isScrolled}
+          />
+        </nav>
+      )}
     </header>
   );
 }

@@ -33,7 +33,7 @@ function CompanyProfilePhoto() {
     <img
       src={src}
       alt="Sarangani Resources Corporation leadership and staff"
-      className="w-full h-full object-cover rounded-2xl shadow-sm min-h-[280px] lg:min-h-[360px]"
+      className="w-full max-w-xl lg:max-w-none h-auto object-contain rounded-xl shadow-md mx-auto lg:mx-0"
       loading="lazy"
       decoding="async"
       onError={() => {
@@ -123,9 +123,9 @@ export function About() {
       </section>
 
       <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-stretch">
-            <FadeIn className="space-y-4">
+        <div className="max-w-7xl mx-auto w-full">
+          <div className="w-full flex flex-col lg:flex-row items-center justify-center gap-6 md:gap-8 lg:gap-12 px-4 md:px-8">
+            <FadeIn className="w-full lg:w-5/12 space-y-4">
               <h2
                 className="text-3xl mb-6 text-gray-900"
                 style={{ fontWeight: 700 }}
@@ -135,16 +135,14 @@ export function About() {
               {companyProfile.paragraphs.map((paragraph, i) => (
                 <p
                   key={i}
-                  className="text-gray-700 mb-4 last:mb-0 leading-relaxed"
+                  className="text-justify text-xs sm:text-sm md:text-base leading-relaxed tracking-normal text-slate-600 mb-6 last:mb-0"
                 >
                   {paragraph}
                 </p>
               ))}
             </FadeIn>
-            <FadeIn delay={0.15} className="h-full">
-              <div className="h-full w-full overflow-hidden">
-                <CompanyProfilePhoto />
-              </div>
+            <FadeIn delay={0.15} className="w-full lg:w-7/12">
+              <CompanyProfilePhoto />
             </FadeIn>
           </div>
         </div>
@@ -199,7 +197,7 @@ export function About() {
       <TeamSection />
 
       <section className="py-20 bg-gray-50 border-t border-slate-100">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <FadeIn className="text-center mb-16">
             <h2
               className="text-4xl mb-4 text-gray-900"
@@ -213,35 +211,44 @@ export function About() {
           </FadeIn>
 
           <div className="relative">
-            <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-[#059669]" />
+            <div
+              className="absolute left-4 sm:left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-[#059669] via-[#059669] to-[#059669]/30 lg:hidden"
+              aria-hidden
+            />
 
-            <StaggerContainer>
-              {milestones.map((milestone, index) => (
+            <div
+              className="hidden lg:block absolute left-[6%] right-[6%] top-[1.125rem] h-0.5 bg-gradient-to-r from-[#059669]/30 via-[#059669] to-[#059669]/30"
+              aria-hidden
+            />
+
+            <StaggerContainer className="flex flex-col lg:flex-row items-stretch lg:items-start justify-center gap-8 lg:gap-4 xl:gap-6">
+              {milestones.map((milestone) => (
                 <StaggerItem
                   key={milestone.year + milestone.title}
-                  className={`relative mb-12 flex items-center ${index % 2 === 0 ? "justify-start" : "justify-end"}`}
+                  className="relative w-full lg:flex-1 lg:min-w-0 pl-12 sm:pl-14 lg:pl-0 lg:pt-10"
                 >
                   <div
-                    className={`w-5/12 ${index % 2 === 0 ? "pr-8 text-right" : "pl-8 text-left"}`}
-                  >
-                    <div className="bg-white p-6 rounded-lg shadow-lg">
-                      <div
-                        className="inline-block bg-[#059669] text-white px-4 py-1 rounded-full mb-3"
-                        style={{ fontWeight: 600 }}
-                      >
-                        {milestone.year}
-                      </div>
-                      <h3
-                        className="text-xl mb-2 text-gray-900"
-                        style={{ fontWeight: 600 }}
-                      >
-                        {milestone.title}
-                      </h3>
-                      <p className="text-gray-600">{milestone.description}</p>
-                    </div>
-                  </div>
+                    className="absolute left-[0.875rem] sm:left-[1.375rem] top-8 lg:top-0 lg:left-1/2 lg:-translate-x-1/2 w-5 h-5 sm:w-6 sm:h-6 bg-[#84cc16] border-4 border-white rounded-full shadow z-10"
+                    aria-hidden
+                  />
 
-                  <div className="absolute left-1/2 transform -translate-x-1/2 w-6 h-6 bg-[#84cc16] border-4 border-white rounded-full shadow" />
+                  <div className="bg-white p-6 rounded-lg shadow-lg h-full lg:text-center">
+                    <div
+                      className="inline-block bg-[#059669] text-white px-4 py-1 rounded-full mb-3"
+                      style={{ fontWeight: 600 }}
+                    >
+                      {milestone.year}
+                    </div>
+                    <h3
+                      className="text-xl mb-2 text-gray-900"
+                      style={{ fontWeight: 600 }}
+                    >
+                      {milestone.title}
+                    </h3>
+                    <p className="text-gray-600 text-sm sm:text-base leading-relaxed lg:text-sm xl:text-base">
+                      {milestone.description}
+                    </p>
+                  </div>
                 </StaggerItem>
               ))}
             </StaggerContainer>

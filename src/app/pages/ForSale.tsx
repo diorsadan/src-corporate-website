@@ -27,6 +27,7 @@ import imageCompression from "browser-image-compression";
 import { supabase } from "@/supabaseClient";
 import { PropertyImageCarousel } from "@/components/common/PropertyImageCarousel";
 import { FADE_IN_UP, VIEWPORT_ONCE } from "@/constants/animations";
+import { useTapToToggle } from "@/hooks/useTapToToggle";
 
 interface PropertyListing {
   id: string;
@@ -979,6 +980,9 @@ const PropertyCard = ({
   onMarkAsSold,
   isDeleting,
   onOpenDetails,
+  isLargeScreen,
+  isCarouselEngaged,
+  onCardTap,
 }: {
   property: PropertyListing;
   isAdmin: boolean;
@@ -986,16 +990,43 @@ const PropertyCard = ({
   onMarkAsSold: (id: string) => void;
   isDeleting: string | null;
   onOpenDetails: (property: PropertyListing) => void;
+  isLargeScreen: boolean;
+  isCarouselEngaged: boolean;
+  onCardTap: (cardId: string) => void;
 }) => {
   const [isCarouselPaused, setIsCarouselPaused] = useState(false);
   const isSold = property.status === "Sold";
   const hasImages = property.image_urls.length > 0;
+  const shouldPauseCarousel = isLargeScreen
+    ? isCarouselPaused
+    : isCarouselEngaged;
 
   return (
     <article
-      className={`group/card ${CARD_SHELL} ${isSold ? "opacity-95" : ""}`}
-      onMouseEnter={() => setIsCarouselPaused(true)}
-      onMouseLeave={() => setIsCarouselPaused(false)}
+      data-tap-card-id={property.id}
+      className={`group/card ${CARD_SHELL} touch-manipulation transition-all duration-300 ease-in-out ${
+        isSold ? "opacity-95" : ""
+      } ${isCarouselEngaged && !isLargeScreen ? "ring-2 ring-[#2e7d5c]/20" : ""}`}
+      onMouseEnter={() => {
+        if (isLargeScreen) {
+          setIsCarouselPaused(true);
+        }
+      }}
+      onMouseLeave={() => {
+        if (isLargeScreen) {
+          setIsCarouselPaused(false);
+        }
+      }}
+      onClick={() => onCardTap(property.id)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onCardTap(property.id);
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-pressed={isCarouselEngaged && !isLargeScreen}
     >
       <div className={`${IMAGE_FRAME} bg-gray-100 shrink-0`}>
         {isSold || !hasImages ? (
@@ -1012,7 +1043,9 @@ const PropertyCard = ({
               heightClass="h-full"
               isolateControls
               parentGroupName="card"
-              autoPlay={!isCarouselPaused}
+              autoPlay={!shouldPauseCarousel}
+              resetToFirstWhenIdle
+              isHovered={isCarouselEngaged}
               autoPlayIntervalMs={3500}
               enableLightbox={false}
               enablePauseControl={false}
@@ -1076,7 +1109,10 @@ const PropertyCard = ({
         <div className="mt-auto">
           <button
             type="button"
-            onClick={() => onOpenDetails(property)}
+            onClick={(event) => {
+              event.stopPropagation();
+              onOpenDetails(property);
+            }}
             className="w-full border border-slate-200 bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors duration-200 text-sm"
           >
             View Details
@@ -1126,6 +1162,7 @@ const PropertyCard = ({
 
 export default function ForSale() {
   const navigate = useNavigate();
+  const { isLargeScreen, handleCardTap, isCardActive } = useTapToToggle();
   const [isAdmin, setIsAdmin] = useState(false);
   const [properties, setProperties] = useState<PropertyListing[]>([]);
   const [selectedFilter, setSelectedFilter] =
@@ -1486,6 +1523,9 @@ export default function ForSale() {
                   onMarkAsSold={requestMarkAsSold}
                   isDeleting={deleting}
                   onOpenDetails={setSelectedProperty}
+                  isLargeScreen={isLargeScreen}
+                  isCarouselEngaged={isCardActive(property.id)}
+                  onCardTap={handleCardTap}
                 />
               ))}
             </div>

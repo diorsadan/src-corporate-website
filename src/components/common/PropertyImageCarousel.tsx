@@ -14,6 +14,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useAccessibleAnimation } from "@/hooks/useAccessibleAnimation";
+import {
+  cardCarouselEngagedClasses,
+  cardCarouselOverlayClasses,
+} from "@/utils/interactiveCardClasses";
 
 /** Remote fallback when local assets are missing (industrial zones not yet uploaded) */
 export const PROPERTY_CAROUSEL_REMOTE_PLACEHOLDER =
@@ -50,7 +54,7 @@ function CarouselSlideImage({
 
   const zoomClass =
     parentGroupName === "card" && isActive
-      ? "transition-transform duration-700 ease-out group-hover/card:scale-110"
+      ? "transition-transform duration-700 ease-out [@media(hover:hover)]:group-hover/card:scale-110"
       : "";
 
   useEffect(() => {
@@ -154,10 +158,15 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
 
   const isCardContext = parentGroupName === "card";
   const groupHover = isCardContext ? "group-hover/card" : "group-hover";
-  /** Card grids hide controls until parent hover; standalone carousels use root `group` */
   const controlRevealClass = isCardContext
-    ? `opacity-0 ${groupHover}:opacity-100`
-    : "opacity-70 group-hover:opacity-100";
+    ? `transition-all duration-300 ease-in-out ${cardCarouselEngagedClasses(isHovered, groupHover)}`
+    : "opacity-70 group-hover:opacity-100 transition-all duration-300 ease-in-out";
+  const overlayOpacityClass = isCardContext
+    ? `transition-opacity duration-300 ease-in-out ${cardCarouselOverlayClasses(isHovered, groupHover)}`
+    : `opacity-60 ${groupHover}:opacity-90 transition-opacity duration-300 ease-in-out`;
+  const dotOpacityClass = isCardContext
+    ? `transition-opacity duration-300 ease-in-out ${cardCarouselEngagedClasses(isHovered, groupHover)}`
+    : `opacity-70 ${groupHover}:opacity-100 transition-opacity duration-300 ease-in-out`;
 
   const isEngaged = isHovered || pointerOver;
   const canAutoAdvance = autoPlay || advanceOnHover || resetToFirstWhenIdle;
@@ -357,7 +366,7 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
         </div>
 
         <div
-          className={`pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-60 transition-opacity duration-500 ${groupHover}:opacity-90`}
+          className={`pointer-events-none absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent transition-opacity duration-500 ${overlayOpacityClass}`}
           aria-hidden
         />
 
@@ -426,7 +435,7 @@ export const PropertyImageCarousel: React.FC<PropertyImageCarouselProps> = ({
             </motion.button>
 
             <div
-              className={`absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10 opacity-70 ${groupHover}:opacity-100 transition-opacity duration-300`}
+              className={`absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10 transition-opacity duration-300 ${dotOpacityClass}`}
             >
               {images.map((_, index) => (
                 <button

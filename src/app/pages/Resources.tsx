@@ -10,6 +10,7 @@ import {
 import { FadeIn } from "@/components/animations/index";
 import { HoverRevealCard } from "@/components/common/HoverRevealCard";
 import { PropertyImageCarousel } from "@/components/common/PropertyImageCarousel";
+import { useTapToToggle } from "@/hooks/useTapToToggle";
 import { PezaIncentivesSection } from "@/components/sections/PezaIncentivesSection";
 
 const carouselImagePaths = [
@@ -69,6 +70,8 @@ const soccskargenAdvantages = [
 ] as const;
 
 export function Resources() {
+  const { handleCardTap, isCardActive } = useTapToToggle();
+
   return (
     <div>
       <section className="relative py-12 md:py-20 bg-white">
@@ -90,15 +93,21 @@ export function Resources() {
 
           <FadeIn>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-12 md:mb-16">
-              {soccskargenAdvantages.map((item) => (
-                <HoverRevealCard
-                  key={item.title}
-                  icon={item.icon}
-                  title={item.title}
-                >
-                  {item.description}
-                </HoverRevealCard>
-              ))}
+              {soccskargenAdvantages.map((item) => {
+                const cardId = `advantage-${item.title}`;
+                return (
+                  <HoverRevealCard
+                    key={item.title}
+                    cardId={cardId}
+                    isActive={isCardActive(cardId)}
+                    onCardTap={handleCardTap}
+                    icon={item.icon}
+                    title={item.title}
+                  >
+                    {item.description}
+                  </HoverRevealCard>
+                );
+              })}
             </div>
           </FadeIn>
 

@@ -16,6 +16,7 @@ import {
   VIEWPORT_ONCE,
 } from "@/constants/animations";
 import { PropertyImageCarousel } from "@/components/common/PropertyImageCarousel";
+import { useTapToToggle } from "@/hooks/useTapToToggle";
 
 type PropertyFilterId = "all" | "industrial-zone" | "subdivision";
 
@@ -55,6 +56,12 @@ export const PropertyGrid: React.FC = () => {
   const [hoveredCardId, setHoveredCardId] = React.useState<string | null>(
     null,
   );
+  const {
+    isLargeScreen,
+    handleCardTap,
+    isCardActive,
+    clearActiveCard,
+  } = useTapToToggle();
 
   const propertyFilters = [
     { id: "all", label: "All Spaces" },
@@ -159,24 +166,66 @@ export const PropertyGrid: React.FC = () => {
             filteredProperties.length > 4 ? "lg:grid-cols-3" : "lg:grid-cols-2"
           }`}
         >
-          {filteredProperties.map((property) => (
-            <motion.div
-              key={property.id}
-              layout={false}
-              whileHover={{
-                y: -12,
-                scale: 1.05,
-                boxShadow:
-                  "0 25px 30px -5px rgb(0 0 0 / 0.15), 0 12px 16px -6px rgb(0 0 0 / 0.15)",
-              }}
-              whileTap={{ scale: 1.02 }}
-              transition={CARD_HOVER_SPRING}
-              className="group/card cursor-pointer bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm flex flex-col h-full hover:border-primary/25 transition-colors duration-300"
-              onHoverStart={() => setHoveredCardId(property.id)}
-              onHoverEnd={() => setHoveredCardId(null)}
-              onClick={() => {
+          {filteredProperties.map((property) => {
+            const isCarouselEngaged = isLargeScreen
+              ? hoveredCardId === property.id
+              : isCardActive(property.id);
+
+            const handlePropertyCardActivate = () => {
+              if (isLargeScreen) {
                 setHoveredCardId(null);
                 setSelectedProperty(property);
+                return;
+              }
+
+              if (isCardActive(property.id)) {
+                clearActiveCard();
+                setSelectedProperty(property);
+                return;
+              }
+
+              handleCardTap(property.id);
+            };
+
+            return (
+            <motion.div
+              key={property.id}
+              data-tap-card-id={property.id}
+              layout={false}
+              whileHover={
+                isLargeScreen
+                  ? {
+                      y: -12,
+                      scale: 1.05,
+                      boxShadow:
+                        "0 25px 30px -5px rgb(0 0 0 / 0.15), 0 12px 16px -6px rgb(0 0 0 / 0.15)",
+                    }
+                  : undefined
+              }
+              whileTap={{ scale: 0.98 }}
+              transition={CARD_HOVER_SPRING}
+              className={`group/card cursor-pointer touch-manipulation bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm flex flex-col h-full transition-all duration-300 ease-in-out hover:border-primary/25 active:border-primary/25 ${
+                isCardActive(property.id) ? "border-primary/25 shadow-md" : ""
+              }`}
+              onHoverStart={() => {
+                if (isLargeScreen) {
+                  setHoveredCardId(property.id);
+                }
+              }}
+              onHoverEnd={() => {
+                if (isLargeScreen) {
+                  setHoveredCardId(null);
+                }
+              }}
+              onClick={handlePropertyCardActivate}
+              role="button"
+              tabIndex={0}
+              aria-pressed={isCardActive(property.id)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handlePropertyCardActivate();
+                }
               }}
             >
               <div className="relative overflow-hidden bg-gray-100 shrink-0">
@@ -188,7 +237,7 @@ export const PropertyGrid: React.FC = () => {
                   parentGroupName="card"
                   autoPlay
                   resetToFirstWhenIdle
-                  isHovered={hoveredCardId === property.id}
+                  isHovered={isCarouselEngaged}
                   autoPlayIntervalMs={2800}
                 />
                 <div className="absolute top-0 right-0 bg-primary text-white px-4 py-2 text-sm font-bold z-20 pointer-events-none">
@@ -239,7 +288,8 @@ export const PropertyGrid: React.FC = () => {
                 </button>
               </div>
             </motion.div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

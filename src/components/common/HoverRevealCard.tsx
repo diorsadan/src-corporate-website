@@ -2,8 +2,19 @@
 
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import {
+  hoverRevealDetailClasses,
+  hoverRevealDetailTextClasses,
+  hoverRevealDividerClasses,
+  hoverRevealIconClasses,
+  hoverRevealShellClasses,
+  hoverRevealTitleClasses,
+} from "@/utils/interactiveCardClasses";
 
 export type HoverRevealCardProps = {
+  cardId: string;
+  isActive: boolean;
+  onCardTap: (cardId: string) => void;
   icon: LucideIcon;
   title: string;
   children: ReactNode;
@@ -12,9 +23,12 @@ export type HoverRevealCardProps = {
 
 /**
  * Center-aligned card: icon, divider, title visible by default;
- * detail content reveals on hover with emerald background inversion.
+ * detail content reveals on desktop hover or mobile tap-to-toggle.
  */
 export function HoverRevealCard({
+  cardId,
+  isActive,
+  onCardTap,
   icon: Icon,
   title,
   children,
@@ -22,24 +36,30 @@ export function HoverRevealCard({
 }: HoverRevealCardProps) {
   return (
     <article
-      className={`group flex flex-col items-center justify-center text-center p-8 md:p-10 bg-white shadow-sm min-h-[220px] transition-all duration-300 ease-in-out hover:bg-emerald-600 hover:shadow-lg ${className}`}
+      data-tap-card-id={cardId}
+      onClick={() => onCardTap(cardId)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onCardTap(cardId);
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      aria-pressed={isActive}
+      className={`group flex flex-col items-center justify-center text-center p-8 md:p-10 min-h-[220px] cursor-pointer touch-manipulation ${hoverRevealShellClasses(isActive)} ${className}`}
     >
-      <div className="w-full opacity-0 max-h-0 overflow-hidden transition-all duration-300 ease-in-out group-hover:opacity-100 group-hover:max-h-[960px] group-hover:mb-6">
-        <div className="text-sm md:text-base leading-relaxed text-slate-600 transition-all duration-300 ease-in-out group-hover:text-white [&_ul]:list-disc [&_ul]:list-inside [&_ul]:space-y-1.5 [&_ul]:text-center [&_p]:text-center">
+      <div className={hoverRevealDetailClasses(isActive)}>
+        <div className={hoverRevealDetailTextClasses(isActive)}>
           {children}
         </div>
       </div>
 
-      <Icon
-        className="w-10 h-10 md:w-12 md:h-12 text-emerald-700 stroke-[1.25] transition-all duration-300 ease-in-out group-hover:text-white flex-shrink-0"
-        aria-hidden
-      />
+      <Icon className={hoverRevealIconClasses(isActive)} aria-hidden />
 
-      <div className="w-16 h-0.5 bg-emerald-500 mx-auto my-3 transition-all duration-300 ease-in-out group-hover:bg-white" />
+      <div className={hoverRevealDividerClasses(isActive)} />
 
-      <h3 className="text-slate-900 font-bold tracking-tight text-center uppercase text-sm md:text-base transition-all duration-300 ease-in-out group-hover:text-white">
-        {title}
-      </h3>
+      <h3 className={hoverRevealTitleClasses(isActive)}>{title}</h3>
     </article>
   );
 }
